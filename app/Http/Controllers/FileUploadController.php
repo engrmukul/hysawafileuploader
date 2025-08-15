@@ -69,66 +69,65 @@ class FileUploadController extends Controller
             'files.*' => 'file|image|max:10240', // max 10MB per file
         ]);
 
-        // $uploadedFiles = [];
-        // foreach ($request->file('files') as $file) {
-        //     // Convert to jpg
-        //     $image = Image::make($file)->encode('jpg', 90);
-        //     $filename = uniqid('upload_') . '.jpg';
-        //     $path = 'uploads/' . $filename;
-        //     \Storage::disk('public')->put($path, $image);
-
-        //     // Save file info to DB (example table: uploads)
-        //     $uploadId = DB::table('uploads')->insertGetId([
-        //         'user_id' => $this->user ? $this->user->id : null,
-        //         'upload_type' => $request->upload_type,
-        //         'district_id' => $request->district,
-        //         'upazila_id' => $request->upazila,
-        //         'union_id' => $request->union,
-        //         'institution_type' => $request->institution_type,
-        //         'institution_id' => $request->institution_name,
-        //         'infrastructure_id' => $request->infrastructure_name,institution_name_1
-        //         'file_path' => $path,
-        //         'original_name' => $file->getClientOriginalName(),
-        //         'file_size' => $file->getSize(),
-        //         'created_at' => now(),
-        //         'updated_at' => now(),
-        //     ]);
-
-        //     $uploadedFiles[] = [
-        //         'original_name' => $file->getClientOriginalName(),
-        //         'path' => $path,
-        //         'size' => $file->getSize(),
-        //         'db_id' => $uploadId,
-        //     ];
-        // }
-
 
         if ($request->upload_type == 'institute') {
             $institution = DB::table('sp_school')->where('id', $request->institution_id)->first();
 
+
+
+            foreach ($request->file('files') as $file) {
+                // Convert to jpg
+                $image = Image::make($file)->encode('jpg', 90);
+                $filename = $institution->institution_id . '.jpg';
+                $path = 'uploads/' . $filename;
+                \Storage::disk('public')->put($path, $image); //will change
+            }
+
+
+
             DB::table('sp_school')->where('id', $request->institution_id)->update([
-                'sch_name_en' => $request->institution_name_1,
-                'sch_name_bn' => $request->institution_name_1_bn,
-                'latitude' => $request->institution_latitude,
-                'longitude' => $request->institution_longitude,
-                'img9' => $request->file('files')[0]->store('uploads', 'public'),
+                'sch_name_en' => $request->institution_name_1 ?? $institution->institution_name_1,
+                'sch_name_bn' => $request->institution_name_1_bn ?? $institution->institution_name_1_bn,
+                'latitude' => $request->institution_latitude ?? $institution->institution_latitude,
+                'longitude' => $request->institution_longitude ?? $institution->institution_longitude,
+                'img9' => $filename
             ]);
         }
         if ($request->upload_type == 'infrastructure') {
             $infrastructure = DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->first();
 
+
+            foreach ($request->file('files') as $file) {
+                // Convert to jpg
+                $image = Image::make($file)->encode('jpg', 90);
+                $filename = $infrastructure->water_id . '.jpg';
+                $path = 'uploads/' . $filename;
+                \Storage::disk('public')->put($path, $image); //will change
+            }
+
             DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->update([
-                'image' => $request->file('files')[0]->store('uploads', 'public'),
+                'image' => $filename,
             ]);
 
         }
         if ($request->upload_type == 'inspection') {
             $sanitaryInspection = DB::table('sp_san_inspection_v2')->where('id', $request->sanitary_inspection_id)->first();
 
+            $uploadedImages = [];
+            foreach ($request->file('files') as $key => $file) {
+                // Convert to jpg
+                $image = Image::make($file)->encode('jpg', 90);
+                $filename = "upload/sp_si_img/" . time() . '_' . $key . '.jpg';
+                $path = 'uploads/' . $filename;
+                \Storage::disk('public')->put($path, $image);
+
+                $uploadedImages[] = $filename;
+            }
+
             DB::table('sp_sanitary_inspection')->where('id', $request->sanitary_inspection_id)->update([
-                'image1' => $request->file('files')[0]->store('uploads', 'public'),
-                'image2' => $request->file('files')[1]->store('uploads', 'public'),
-                'image3' => $request->file('files')[2]->store('uploads', 'public'),
+                'image1' => $uploadedImages[0] ?? null,
+                'image2' => $uploadedImages[1] ?? null,
+                'image3' => $uploadedImages[2] ?? null,
             ]);
 
         }
