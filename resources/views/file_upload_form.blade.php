@@ -1,85 +1,208 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <h2>Upload Files</h2>
-        <form action="{{ route('file-upload.upload') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <div class="form-group">
-                <label for="upload_type">Upload Type</label>
-                <select name="upload_type" id="upload_type" class="form-control" required>
-                    <option value="">Select Upload Type</option>
-                    <option value="institute">Institute</option>
-                    <option value="infrastructure">Infrastructure</option>
-                    <option value="inspection">Sanitary Inspection</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="district">District</label>
-                <select name="district" id="district" class="form-control" required>
-                    <option value="">Select District</option>
-                    @foreach($districts as $district)
-                        <option value="{{ $district->id }}">{{ $district->distname }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="upazila">Upazila</label>
-                <select name="upazila" id="upazila" class="form-control" required>
-                    <option value="">Select Upazila</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="union">Union</label>
-                <select name="union" id="union" class="form-control" required>
-                    <option value="">Select Union</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="institution_type">Institution Type</label>
-                <select name="institution_type" id="institution_type" class="form-control" required>
-                    <option value="">Select Type</option>
-                    @foreach($institutionTypes as $type)
-                        <option value="{{ $type->sch_type_edu }}">{{ $type->sch_type_edu }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="institution_name">Institution Name</label>
-                <select name="institution_name" id="institution_name" class="form-control" required>
-                    <option value="">Select Institution</option>
-                </select>
+<div class="container">
+    <h2>Upload Files</h2>
+    <form action="{{ route('file-upload.upload') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="upload_type">Upload Type</label>
+                    <select name="upload_type" id="upload_type" class="form-control" required>
+                        <option value="">Select Upload Type</option>
+                        <option value="institute">Institute</option>
+                        <option value="infrastructure">Infrastructure</option>
+                        <option value="inspection">Sanitary Inspection</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="district">District</label>
+                    <select name="district" id="district" class="form-control" required>
+                        <option value="">Select District</option>
+                        @foreach($districts as $district)
+                            <option value="{{ $district->id }}">{{ $district->distname }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="upazila">Upazila</label>
+                    <select name="upazila" id="upazila" class="form-control" required>
+                        <option value="">Select Upazila</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="union">Union</label>
+                    <select name="union" id="union" class="form-control" required>
+                        <option value="">Select Union</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="institution_type">Institution Type</label>
+                    <select name="institution_type" id="institution_type" class="form-control" required>
+                        <option value="">Select Type</option>
+                        @foreach($institutionTypes as $type)
+                            <option value="{{ $type->sch_type_edu }}">{{ $type->sch_type_edu }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="institution_name">Institution Name</label>
+                    <select name="institution_name" id="institution_name" class="form-control" required>
+                        <option value="">Select Institution</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group" id="infrastructure_group">
-                <label for="infrastructure_name">Infrastructure Name</label>
-                <select name="infrastructure_name" id="infrastructure_name" class="form-control">
-                    <option value="">Select Infrastructure</option>
-                </select>
+            <!-- Right Column -->
+            <div class="col-md-6">
+                <div class="form-group" id="institution_name_1_group">
+                    <label for="institution_name_1">Institution English Name</label>
+                    <input type="text" name="institution_name_1" id="institution_name_1" class="form-control" required>
+                </div>
+                <div class="form-group" id="institution_name_1_bn_group">
+                    <label for="institution_name_1_bn">Institution Bangla Name</label>
+                    <input type="text" name="institution_name_1_bn" id="institution_name_1_bn" class="form-control" required>
+                </div>
+                <div class="form-group" id="institution_latitude_group">
+                    <label for="institution_latitude">Latitude</label>
+                    <input type="text" name="institution_latitude" id="institution_latitude" class="form-control" required>
+                </div>
+                <div class="form-group" id="institution_longitude_group">
+                    <label for="institution_longitude">Longitude</label>
+                    <input type="text" name="institution_longitude" id="institution_longitude" class="form-control" required>
+                </div>
+                <div class="form-group" id="infrastructure_group">
+                    <label for="infrastructure_name">Infrastructure Name</label>
+                    <select name="infrastructure_name" id="infrastructure_name" class="form-control">
+                        <option value="">Select Infrastructure</option>
+                    </select>
+                </div>
+                    <div class="form-group">
+                        <label for="files">Files</label>
+                        <input type="file" name="files[]" id="files" class="form-control" multiple required>
+                        <div id="file-preview" class="mt-2 row"></div>
+                    </div>
             </div>
-            <div class="form-group">
-                <label for="files">Files</label>
-                <input type="file" name="files[]" id="files" class="form-control" multiple required>
-            </div>
+
+            <style>
+                .preview-img {
+                    max-width: 100px;
+                    max-height: 100px;
+                    margin: 5px;
+                    position: relative;
+                }
+                .remove-img-btn {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    background: rgba(255,0,0,0.7);
+                    color: #fff;
+                    border: none;
+                    border-radius: 50%;
+                    width: 24px;
+                    height: 24px;
+                    cursor: pointer;
+                    z-index: 2;
+                }
+                .preview-img-wrapper {
+                    display: inline-block;
+                    position: relative;
+                }
+            </style>
+        </div>
+
+        <!-- Submit Button Full Width -->
+        <div class="mt-3">
             <button type="submit" class="btn btn-primary">Upload</button>
-        </form>
-    </div>
+        </div>
+    </form>
+</div>
 
 
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
+            // Image preview and delete
+            let fileInput = document.getElementById('files');
+            let previewDiv = document.getElementById('file-preview');
+            let filesArray = [];
+
+            fileInput.addEventListener('change', function(e) {
+                filesArray = Array.from(fileInput.files);
+                renderPreviews();
+            });
+
+            function renderPreviews() {
+                previewDiv.innerHTML = '';
+                filesArray.forEach(function(file, idx) {
+                    if(file.type.startsWith('image/')) {
+                        let reader = new FileReader();
+                        reader.onload = function(e) {
+                            let wrapper = document.createElement('div');
+                            wrapper.className = 'preview-img-wrapper';
+                            let img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.className = 'preview-img';
+                            img.style.width = '100px';
+                            img.style.height = '100px';
+                            img.style.objectFit = 'cover';
+                            let btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'remove-img-btn';
+                            btn.innerHTML = '&times;';
+                            btn.onclick = function() {
+                                filesArray.splice(idx, 1);
+                                updateFileList();
+                                renderPreviews();
+                            };
+                            wrapper.appendChild(img);
+                            wrapper.appendChild(btn);
+                            previewDiv.appendChild(wrapper);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            function updateFileList() {
+                // Create a new DataTransfer to update the file input
+                let dt = new DataTransfer();
+                filesArray.forEach(function(file) {
+                    dt.items.add(file);
+                });
+                fileInput.files = dt.files;
+            }
             // Hide infrastructure_name by default
             $('#infrastructure_group').hide();
 
+
+            //default institution_name_1, institution_latitude, institution_longitude hide
+            $('#institution_name_1_group').hide();
+            $('#institution_name_1_bn_group').hide();
+            $('#institution_latitude_group').hide();
+            $('#institution_longitude_group').hide();
             // Show/hide infrastructure_name based on upload_type
             $('#upload_type').on('change', function() {
                 if ($(this).val() === 'infrastructure' || $(this).val() === 'inspection') {
                     $('#infrastructure_group').show();
+                    $('#institution_name_1_group').hide();
+                    $('#institution_name_1_bn_group').hide();
+                    $('#institution_latitude_group').hide();
+                    $('#institution_longitude_group').hide();
+                    $('#institution_name_1').val('');
+                    $('#institution_name_1_bn').val('');
+                    $('#institution_latitude').val('');
+                    $('#institution_longitude').val('');
                 } else {
                     $('#infrastructure_group').hide();
                     $('#infrastructure_name').val('');
+                    $('#institution_name_1_group').show();
+                    $('#institution_name_1_bn_group').show();
+                    $('#institution_latitude_group').show();
+                    $('#institution_longitude_group').show();
                 }
             });
 
@@ -165,6 +288,8 @@
             $('#union').on('change', function () {
             });
 
+
+            let allInstitutions = [];
             // onclick #institution_type get institutions
             $('#institution_type').on('change', function () {
                 var unionId = $('#union').val();
@@ -178,6 +303,7 @@
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {
+                            allInstitutions = data;
                             $institution.empty();
                             $institution.append('<option value="">Select Institution</option>');
                             $.each(data, function (i, institution) {
@@ -214,6 +340,22 @@
                             $.each(data, function (i, infrastructure) {
                                 $infrastructure.append('<option value="' + infrastructure.id + '">' + infrastructure.water_id + '</option>');
                             });
+
+
+                            console.log(allInstitutions);
+
+                            //find selected institution
+                            var selectedInstitution = allInstitutions.find(function (institution) {
+                                return institution.id == institutionId;
+                            });
+                            console.log(selectedInstitution);
+
+
+                            $('#institution_name_1').val(selectedInstitution.sch_name_en);
+                            $('#institution_name_1_bn').val(selectedInstitution.sch_name_bn);
+                            $('#institution_latitude').val(selectedInstitution.lat);
+                            $('#institution_longitude').val(selectedInstitution.lon);
+
                         },
                         error: function () {
                             $infrastructure.empty();

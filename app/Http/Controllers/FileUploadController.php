@@ -17,7 +17,7 @@ class FileUploadController extends Controller
     {
         $this->username = $request->query('username');
         //base64 decode
-        $this->username =  'tala4';// base64_decode($this->username);
+        $this->username = 'tala4';// base64_decode($this->username);
         //get user details using username
         $this->user = DB::table('users')->where('email', $this->username)->first();
     }
@@ -86,7 +86,7 @@ class FileUploadController extends Controller
         //         'union_id' => $request->union,
         //         'institution_type' => $request->institution_type,
         //         'institution_id' => $request->institution_name,
-        //         'infrastructure_id' => $request->infrastructure_name,
+        //         'infrastructure_id' => $request->infrastructure_name,institution_name_1
         //         'file_path' => $path,
         //         'original_name' => $file->getClientOriginalName(),
         //         'file_size' => $file->getSize(),
@@ -103,12 +103,35 @@ class FileUploadController extends Controller
         // }
 
 
+        if ($request->upload_type == 'institute') {
+            $institution = DB::table('sp_school')->where('id', $request->institution_id)->first();
 
-        //UPDATE SP SCHOOL TABLE
-        //UPDATE SP INFRASTRUCTURE TABLE
-        //UPDATE SANITARY INSPECTION TABLE
+            DB::table('sp_school')->where('id', $request->institution_id)->update([
+                'sch_name_en' => $request->institution_name_1,
+                'sch_name_bn' => $request->institution_name_1_bn,
+                'latitude' => $request->institution_latitude,
+                'longitude' => $request->institution_longitude,
+                'img9' => $request->file('files')[0]->store('uploads', 'public'),
+            ]);
+        }
+        if ($request->upload_type == 'infrastructure') {
+            $infrastructure = DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->first();
 
+            DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->update([
+                'image' => $request->file('files')[0]->store('uploads', 'public'),
+            ]);
 
+        }
+        if ($request->upload_type == 'inspection') {
+            $sanitaryInspection = DB::table('sp_san_inspection_v2')->where('id', $request->sanitary_inspection_id)->first();
+
+            DB::table('sp_sanitary_inspection')->where('id', $request->sanitary_inspection_id)->update([
+                'image1' => $request->file('files')[0]->store('uploads', 'public'),
+                'image2' => $request->file('files')[1]->store('uploads', 'public'),
+                'image3' => $request->file('files')[2]->store('uploads', 'public'),
+            ]);
+
+        }
 
         return response()->json([
             'message' => 'Files uploaded and converted to JPG successfully.',
@@ -138,7 +161,7 @@ class FileUploadController extends Controller
             ->where('unid', $union_id)
             ->where('sch_type_edu', $institution_type)
             ->where('created_by', $this->user->id)
-            ->get(['id', 'sch_name_en']);
+            ->get();
 
         return response()->json($institutions);
     }
