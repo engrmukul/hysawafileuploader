@@ -17,7 +17,7 @@ class FileUploadController extends Controller
     {
         $this->username = $request->query('username');
         //base64 decode
-        $this->username = 'tala4';// base64_decode($this->username);
+        $this->username = base64_decode($this->username);
         //get user details using username
         $this->user = DB::table('users')->where('email', $this->username)->first();
     }
@@ -29,6 +29,17 @@ class FileUploadController extends Controller
      */
     public function showForm()
     {
+        if (!$this->user) {
+            return view('errors.user_not_found', ['message' => 'User not found']);
+        }
+
+
+        //get role from role_user table
+        $role = DB::table('role_user')->where('user_id', $this->user->id)->first();
+        if (!$role || !in_array($role->role_id, [14, 15])) {
+            return view('errors.user_not_found', ['message' => 'User role not found']);
+        }
+
         $districts = DB::table('fdistrict')
             ->whereIn('id', [6, 7, 41])
             ->get();
@@ -57,22 +68,44 @@ class FileUploadController extends Controller
      */
     public function upload(Request $request)
     {
-        $request->validate([
-            'upload_type' => 'required|string',
-            'district' => 'required|integer',
-            'upazila' => 'required|integer',
-            'union' => 'required|integer',
-            'institution_type' => 'nullable|string',
-            'institution_name' => 'nullable|integer',
-            'infrastructure_name' => 'nullable|integer',
-            'files' => 'required|array',
-            'files.*' => 'file|image|max:10240', // max 10MB per file
+        $request->merge([
+            'institution_latitude' => trim($request->input('institution_latitude')),
+            'institution_longitude' => trim($request->input('institution_longitude')),
         ]);
 
 
-        if ($request->upload_type == 'institute') {
-            $institution = DB::table('sp_school')->where('id', $request->institution_id)->first();
+        try {
+            $validator = \Validator::make($request->all(), [
+                'upload_type' => 'required|string',
+                'district' => 'required|integer',
+                'upazila' => 'required|integer',
+                'union' => 'required|integer',
+                'institution_type' => 'nullable|string',
+                'institution_id' => 'nullable|integer',
+                'infrastructure_id' => 'nullable|integer',
+                'files' => 'required|array',
+                'files.*' => 'file|image|max:10240', // max 10MB per file
+                'institution_latitude' => 'required',
+                'institution_longitude' => 'required'
+            ]);
 
+            if ($validator->fails()) {
+                return redirect()
+                    ->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Validation failed: ' . $e->getMessage(),
+            ], 422);
+        }
+
+
+
+        if ($request->upload_type == 'institute') {
+
+            $institution = DB::table('sp_school')->where('id', $request->institution_id)->first();
 
 
             foreach ($request->file('files') as $file) {
@@ -84,12 +117,11 @@ class FileUploadController extends Controller
             }
 
 
-
             DB::table('sp_school')->where('id', $request->institution_id)->update([
-                'sch_name_en' => $request->institution_name_1 ?? $institution->institution_name_1,
-                'sch_name_bn' => $request->institution_name_1_bn ?? $institution->institution_name_1_bn,
-                'latitude' => $request->institution_latitude ?? $institution->institution_latitude,
-                'longitude' => $request->institution_longitude ?? $institution->institution_longitude,
+                'sch_name_en' => $request->institution_name ?? $institution->institution_name,
+                // 'sch_name_bn' => $request->institution_name_1_bn ?? $institution->institution_name_1_bn,
+                'lat' => $request->institution_latitude ?? $institution->institution_latitude,
+                'lon' => $request->institution_longitude ?? $institution->institution_longitude,
                 'img9' => $filename
             ]);
         }
@@ -117,14 +149,14 @@ class FileUploadController extends Controller
             foreach ($request->file('files') as $key => $file) {
                 // Convert to jpg
                 $image = Image::make($file)->encode('jpg', 90);
-                $filename = "upload/sp_si_img/" . time() . '_' . $key . '.jpg';
+                $filename = "sp_si_img/" . time() . '_' . $key . '.jpg';
                 $path = 'uploads/' . $filename;
                 \Storage::disk('public')->put($path, $image);
 
                 $uploadedImages[] = $filename;
             }
 
-            DB::table('sp_sanitary_inspection')->where('id', $request->sanitary_inspection_id)->update([
+            DB::table('sp_san_inspection_v2')->where('id', $request->sanitary_inspection_id)->update([
                 'image1' => $uploadedImages[0] ?? null,
                 'image2' => $uploadedImages[1] ?? null,
                 'image3' => $uploadedImages[2] ?? null,
@@ -132,10 +164,9 @@ class FileUploadController extends Controller
 
         }
 
-        return response()->json([
-            'message' => 'Files uploaded and converted to JPG successfully.',
-            //'files' => $uploadedFiles,
-        ]);
+        return redirect()
+            ->back()
+            ->with('success', 'Files uploaded and converted to JPG successfully.');
     }
 
 

@@ -1,8 +1,28 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h2>Upload Files</h2>
+    <div class="container">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+        @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+        <h2>Upload Files</h2>
     <form action="{{ route('file-upload.upload') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="row">
@@ -49,7 +69,7 @@
                 </div>
                 <div class="form-group">
                     <label for="institution_name">Institution Name</label>
-                    <select name="institution_name" id="institution_name" class="form-control" required>
+                    <select name="institution_id" id="institution_name" class="form-control" required>
                         <option value="">Select Institution</option>
                     </select>
                 </div>
@@ -58,13 +78,13 @@
             <!-- Right Column -->
             <div class="col-md-6">
                 <div class="form-group" id="institution_name_1_group">
-                    <label for="institution_name_1">Institution English Name</label>
-                    <input type="text" name="institution_name_1" id="institution_name_1" class="form-control" required>
+                    <label for="institution_name">Institution English Name</label>
+                    <input type="text" name="institution_name" id="institution_name_1" class="form-control" required>
                 </div>
-                <div class="form-group" id="institution_name_1_bn_group">
+                <!-- <div class="form-group" id="institution_name_1_bn_group">
                     <label for="institution_name_1_bn">Institution Bangla Name</label>
                     <input type="text" name="institution_name_1_bn" id="institution_name_1_bn" class="form-control" required>
-                </div>
+                </div> -->
                 <div class="form-group" id="institution_latitude_group">
                     <label for="institution_latitude">Latitude</label>
                     <input type="text" name="institution_latitude" id="institution_latitude" class="form-control" required>
@@ -75,7 +95,7 @@
                 </div>
                 <div class="form-group" id="infrastructure_group">
                     <label for="infrastructure_name">Infrastructure Name</label>
-                    <select name="infrastructure_name" id="infrastructure_name" class="form-control">
+                    <select name="infrastructure_id" id="infrastructure_name" class="form-control">
                         <option value="">Select Infrastructure</option>
                     </select>
                 </div>
@@ -181,7 +201,7 @@
 
             //default institution_name_1, institution_latitude, institution_longitude hide
             $('#institution_name_1_group').hide();
-            $('#institution_name_1_bn_group').hide();
+            // $('#institution_name_1_bn_group').hide();
             $('#institution_latitude_group').hide();
             $('#institution_longitude_group').hide();
             // Show/hide infrastructure_name based on upload_type
@@ -189,7 +209,7 @@
                 if ($(this).val() === 'infrastructure' || $(this).val() === 'inspection') {
                     $('#infrastructure_group').show();
                     $('#institution_name_1_group').hide();
-                    $('#institution_name_1_bn_group').hide();
+                    // $('#institution_name_1_bn_group').hide();
                     $('#institution_latitude_group').hide();
                     $('#institution_longitude_group').hide();
                     $('#institution_name_1').val('');
@@ -200,7 +220,7 @@
                     $('#infrastructure_group').hide();
                     $('#infrastructure_name').val('');
                     $('#institution_name_1_group').show();
-                    $('#institution_name_1_bn_group').show();
+                    // $('#institution_name_1_bn_group').show();
                     $('#institution_latitude_group').show();
                     $('#institution_longitude_group').show();
                 }
@@ -352,7 +372,7 @@
 
 
                             $('#institution_name_1').val(selectedInstitution.sch_name_en);
-                            $('#institution_name_1_bn').val(selectedInstitution.sch_name_bn);
+                            // $('#institution_name_1_bn').val(selectedInstitution.sch_name_bn);
                             $('#institution_latitude').val(selectedInstitution.lat);
                             $('#institution_longitude').val(selectedInstitution.lon);
 
