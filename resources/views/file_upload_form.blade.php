@@ -29,6 +29,8 @@
             <!-- Left Column -->
             <div class="col-md-6">
                 <div class="form-group">
+                    <label for="user_id">User ID</label>
+                    <input type="hidden" name="user_id" id="user_id" class="form-control" value="{{ $userId }}">
                     <label for="upload_type">Upload Type</label>
                     <select name="upload_type" id="upload_type" class="form-control" required>
                         <option value="">Select Upload Type</option>
@@ -313,13 +315,14 @@
             // onclick #institution_type get institutions
             $('#institution_type').on('change', function () {
                 var unionId = $('#union').val();
+                var userId = $('#user_id').val(); // Assuming you have a hidden input with user ID
                 var institutionType = $(this).val();
                 var $institution = $('#institution_name');
                 $institution.empty();
                 $institution.append('<option value="">Loading...</option>');
                 if (unionId && institutionType) {
                     $.ajax({
-                        url: '/get-institutions/' + unionId + '/' + institutionType,
+                        url: '/get-institutions/' + unionId + '/' + institutionType + '/' + userId,
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {

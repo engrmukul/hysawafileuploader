@@ -16,9 +16,7 @@ class FileUploadController extends Controller
     public function __construct(Request $request)
     {
         $this->username = $request->query('username');
-        //base64 decode
         $this->username = base64_decode($this->username);
-        //get user details using username
         $this->user = DB::table('users')->where('email', $this->username)->first();
     }
 
@@ -57,6 +55,7 @@ class FileUploadController extends Controller
             'unions' => $unions,
             'institutionTypes' => $institutionTypes,
             'institutions' => $institutions,
+            'userId' => $this->user->id
         ]);
     }
 
@@ -185,12 +184,12 @@ class FileUploadController extends Controller
     }
 
     //for institutions
-    public function getInstitutions($union_id, $institution_type)
+    public function getInstitutions($union_id, $institution_type, $user_id)
     {
         $institutions = \DB::table('sp_school')
             ->where('unid', $union_id)
             ->where('sch_type_edu', $institution_type)
-            ->where('created_by', $this->user->id)
+            ->where('created_by', $user_id)
             ->get();
 
         return response()->json($institutions);

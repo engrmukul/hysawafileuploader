@@ -25,6 +25,6 @@ Route::get('/get-upazilas/{district_id}', [FileUploadController::class, 'getUpaz
 //for getting unions by upazila id
 Route::get('/get-unions/{upazila_id}', [FileUploadController::class, 'getUnions'])->name('get-unions');
 //for getting institutions by union id, institute type
-Route::get('/get-institutions/{union_id}/{institution_type}', [FileUploadController::class, 'getInstitutions'])->name('get-institutions');
+Route::get('/get-institutions/{union_id}/{institution_type}/{user_id}', [FileUploadController::class, 'getInstitutions'])->name('get-institutions');
 //for getting infrastructures by institution id
 Route::get('/get-infrastructures/{institution_id}', [FileUploadController::class, 'getInfrastructures'])->name('get-infrastructures');
