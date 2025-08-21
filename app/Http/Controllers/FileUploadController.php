@@ -84,7 +84,7 @@ class FileUploadController extends Controller
                 'institution_id' => 'nullable|integer',
                 'infrastructure_id' => 'nullable|integer',
                 'files' => 'nullable|array',
-                'files.*' => 'file|mimes:jpg,jpeg,png|max:10240',
+                'files.*' => 'file|mimes:jpg,jpeg,png|max:102400',
                 'institution_latitude' => 'required',
                 'institution_longitude' => 'required'
             ]);
@@ -118,7 +118,10 @@ class FileUploadController extends Controller
         
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    $image = Image::make($file)->encode('jpg', 90);
+                    $image = Image::make($file)->resize(800, 600, function ($constraint) {
+        $constraint->aspectRatio(); // Keeps the original aspect ratio
+        $constraint->upsize();      // Prevents upsizing if image is smaller than target
+    })->encode('jpg', 90);
                     $filename = $institution->institution_id . '.jpg';
                     $path = 'sp_satkhira_inst/' . $filename;
                     Storage::disk('mis_uploads')->put($path, $image);
@@ -139,7 +142,10 @@ class FileUploadController extends Controller
           if ($request->file('files')){
                 foreach ($request->file('files') as $file) {
                     // Convert to jpg
-                    $image = Image::make($file)->encode('jpg', 90);
+                    $image = Image::make($file)->resize(800, 600, function ($constraint) {
+        $constraint->aspectRatio(); // Keeps the original aspect ratio
+        $constraint->upsize();      // Prevents upsizing if image is smaller than target
+    })->encode('jpg', 90);
                     $filename = $infrastructure->water_id . '.jpg';
                     $path = 'sp_satkhira_infras/' . $filename;
                     \Storage::disk('mis_uploads')->put($path, $image); //will change
@@ -159,7 +165,10 @@ class FileUploadController extends Controller
             $uploadedImages = [];
             foreach ($request->file('files') as $key => $file) {
                 // Convert to jpg
-                $image = Image::make($file)->encode('jpg', 90);
+                $image = Image::make($file)->resize(800, 600, function ($constraint) {
+        $constraint->aspectRatio(); // Keeps the original aspect ratio
+        $constraint->upsize();      // Prevents upsizing if image is smaller than target
+    })->encode('jpg', 90);
                 $filename =  time() . '_' . $key . '.jpg';
                 $path = 'sp_si_img/' . $filename;
                 \Storage::disk('mis_uploads')->put($path, $image);
@@ -202,7 +211,7 @@ class FileUploadController extends Controller
             ->where('unid', $union_id)
             ->where('sch_type_edu', $institution_type)
             ->where('created_by', $user_id)
-            ->get();
+            ->get(['id', 'sch_name_en', 'lat', 'lon', 'img9']);
 
         return response()->json($institutions);
     }

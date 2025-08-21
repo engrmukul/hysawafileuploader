@@ -22,7 +22,7 @@
                 </button>
             </div>
         @endif
-        <form action="{{ route('file-upload.upload') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('file-upload.upload') }}" method="POST" enctype="multipart/form-data" id="myForm">
             @csrf
             <div class="row">
                 <!-- Left Column -->
@@ -157,7 +157,7 @@
 
 
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
             // Image preview and delete
@@ -520,4 +520,6 @@
 
         });
     </script>
+
+
 @endsection

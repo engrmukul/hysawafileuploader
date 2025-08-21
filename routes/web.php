@@ -16,6 +16,9 @@ Route::get('/', function () {
 });
 
 use App\Http\Controllers\FileUploadController;
+use App\Http\Controllers\InstitutionController;
+use App\Http\Controllers\WaterPointController;
+
 
 Route::get('/file-upload', [FileUploadController::class, 'showForm'])->name('file-upload.form');
 Route::post('/file-upload', [FileUploadController::class, 'upload'])->name('file-upload.upload');
@@ -31,3 +34,17 @@ Route::get('/get-infrastructures/{institution_id}', [FileUploadController::class
 
 //get-inspaction-images
 Route::get('/get-inspaction-images/{infrastructure_id}/{inspaction_date}', [FileUploadController::class, 'getInspactionImages'])->name('get-inspaction-images');
+
+//institution-edit
+Route::get('/institution-edit/', [InstitutionController::class, 'edit'])->name('institution.edit');
+//institution-update
+Route::post('/institution-update/', [InstitutionController::class, 'update'])->name('institution.update');
+
+//water-point create
+Route::get('/water-point-create/', [WaterPointController::class, 'create'])->name('water-point.create');
+//water-point-store
+Route::post('/water-point-store/', [WaterPointController::class, 'store'])->name('water-point.store');
+//water-point-edit
+Route::get('/water-point-edit/', [WaterPointController::class, 'edit'])->name('water-point.edit');
+//water-point-update
+Route::post('/water-point-update/', [WaterPointController::class, 'update'])->name('water-point.update');
