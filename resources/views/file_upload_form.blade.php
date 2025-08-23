@@ -79,7 +79,7 @@
                 <!-- Right Column -->
                 <div class="col-md-6">
                     <div class="form-group" id="institution_name_1_group">
-                        <label for="institution_name">Institution English Name</label>
+                        <label for="institution_name">Institution English Name (For Edit)</label>
                         <input type="text" name="institution_name" id="institution_name_1" class="form-control" required>
                     </div>
                     <!-- <div class="form-group" id="institution_name_1_bn_group">
