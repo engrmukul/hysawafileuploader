@@ -39,7 +39,7 @@ class FileUploadController extends Controller
         }
 
         $districts = DB::table('fdistrict')
-            ->whereIn('id', [6, 7, 41])
+            ->whereIn('id', [41, 32, 7])
             ->get();
         $upazilas = [];
         $unions = [];
@@ -47,7 +47,7 @@ class FileUploadController extends Controller
             ->select('sch_type_edu')
             ->groupBy('sch_type_edu')
             ->get();
-            
+
         $institutions = [];
 
         return view('file_upload_form', [
@@ -107,15 +107,15 @@ class FileUploadController extends Controller
 
             $institution = DB::table('sp_school')->where('id', $request->institution_id)->first();
 
-          
-          
+
+
           $data = [
                 'sch_name_en' => $request->institution_name ?? $institution->institution_name,
                 // 'sch_name_bn' => $request->institution_name_1_bn ?? $institution->institution_name_1_bn,
                 'lat' => $request->institution_latitude ?? $institution->institution_latitude,
                 'lon' => $request->institution_longitude ?? $institution->institution_longitude,
             ];
-        
+
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
                     $image = Image::make($file)->resize(800, 600, function ($constraint) {
@@ -128,17 +128,17 @@ class FileUploadController extends Controller
                 }
                 $data['img9'] = $filename;
             }
-            
+
             DB::table('sp_school')->where('id', $request->institution_id)->update($data);
-          
+
     }
-        
-        
+
+
         if ($request->upload_type == 'infrastructure') {
                 $infrastructure = DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->first();
-        
+
         $data = [];
-        
+
           if ($request->file('files')){
                 foreach ($request->file('files') as $file) {
                     // Convert to jpg
@@ -155,10 +155,10 @@ class FileUploadController extends Controller
           } else {
               return redirect()->back()->with('success', 'No Image Selected.');
           }
-        
+
         }
-        
-        
+
+
         if ($request->upload_type == 'inspection') {
             $sanitaryInspection = DB::table('sp_san_inspection_v2')->where(['infrastructure_id' => $request->infrastructure_id, 'inspection_date' => $request->inspection_date ])->first();
 
@@ -207,10 +207,15 @@ class FileUploadController extends Controller
     //for institutions
     public function getInstitutions($union_id, $institution_type, $user_id)
     {
+        $role = DB::table('role_user')->where('user_id', $user_id)->first();
+        $role_id = $role->role_id;
         $institutions = \DB::table('sp_school')
             ->where('unid', $union_id)
             ->where('sch_type_edu', $institution_type)
-            ->where('created_by', $user_id)
+            ->where(function ($query) use ($user_id, $role_id) {
+                if($role_id == '14')
+                $query->where('created_by', $user_id);
+            })
             ->get(['id', 'sch_name_en', 'lat', 'lon', 'img9']);
 
         return response()->json($institutions);
@@ -226,8 +231,8 @@ class FileUploadController extends Controller
 
         return response()->json($infrastructures);
     }
-    
-    
+
+
     public function getInspectionDate($infrastructure_id)
     {
             $inspectionDates =  \DB::table('sp_san_inspection_v2')
