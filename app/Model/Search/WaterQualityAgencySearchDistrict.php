@@ -1,0 +1,274 @@
+<?php
+
+namespace App\Model\Search;
+
+use App\Model\WaterQualityAgency;
+use Illuminate\Http\Request;
+use App\Model\Water;
+
+class WaterQualityAgencySearchDistrict
+{
+
+    private $datas;
+    private $request;
+    private $pagination;
+
+    public function __construct(Request $request, $pagination = false)
+    {
+        $this->request = $request;
+        $this->datas;
+        $this->pagination = $pagination;
+        $this->process();
+    }
+
+    private function process()
+    {
+        $request = $this->request;
+
+        $submitted_by = $request->submitted_by;
+        $distid = $request->district_id;
+        $upid = $request->upazila_id;
+        $unid = $request->union_id;
+        $starting_date = $request->starting_date;
+        $ending_date = $request->ending_date;
+        $TW_No = $request->TW_No;
+
+        if(!empty($TW_No)) {
+            $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                ->where('role_user.role_id', '7')
+                ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                ->where('water_quality_results.water_id', $TW_No)
+                ->orderBy('water_quality_results.report_date','DESC')
+                ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                    'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                    'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                    'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                    'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                    'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                    'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+        }elseif(!empty($submitted_by) && is_numeric($submitted_by)){
+
+//        $q = Water::where(function($query) use($request) {
+//            $query->orderBy('wq_test_date', 'DESC');
+//        })
+//            ->whereHas('qualityResults', function($query) use($request){
+//                    $query->where('created_by', $submitted_by);
+//         });
+
+            if($starting_date != "" && $ending_date != ""){
+                if(!empty($unid))
+                {
+                    $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                        ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                        ->where('role_user.role_id', '7')
+                        ->whereDate('report_date', '>=', $starting_date)->whereDate('report_date', '<=', $ending_date)
+                        ->where('water_quality_results.created_by', $submitted_by)
+                        ->where('tbl_water.unid', $unid)
+                        ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                        ->orderBy('water_quality_results.report_date','DESC')
+                        ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                            'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                            'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                            'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                            'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                            'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                            'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+                }elseif(!empty($upid)){
+                    $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                        ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                        ->where('role_user.role_id', '7')
+                        ->whereDate('report_date', '>=', $starting_date)->whereDate('report_date', '<=', $ending_date)
+                        ->where('water_quality_results.created_by', $submitted_by)
+                        ->where('tbl_water.upid', $upid)
+                        ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                        ->orderBy('water_quality_results.report_date','DESC')
+                        ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                            'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                            'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                            'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                            'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                            'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                            'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+                }elseif(!empty($distid)){
+                    $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                        ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                        ->where('role_user.role_id', '7')
+                        ->whereDate('report_date', '>=', $starting_date)->whereDate('report_date', '<=', $ending_date)
+                        ->where('water_quality_results.created_by', $submitted_by)
+                        ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                        ->where('tbl_water.distid', $distid)
+                        ->orderBy('water_quality_results.report_date','DESC')
+                        ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                            'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                            'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                            'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                            'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                            'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                            'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+                }else{
+                    $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                        ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                        ->where('role_user.role_id', '7')
+                        ->whereDate('report_date', '>=', $starting_date)->whereDate('report_date', '<=', $ending_date)
+                        ->where('water_quality_results.created_by', $submitted_by)
+                        ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                        ->orderBy('water_quality_results.report_date','DESC')
+                        ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                            'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                            'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                            'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                            'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                            'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                            'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+                }
+            } else {
+                if(!empty($unid))
+                {
+                    $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                        ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                        ->where('role_user.role_id', '7')
+                        ->where('water_quality_results.created_by', $submitted_by)
+                        ->where('tbl_water.unid', $unid)
+                        ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                        ->orderBy('water_quality_results.report_date','DESC')
+                        ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                            'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                            'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                            'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                            'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                            'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                            'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+                }elseif(!empty($upid)){
+                    $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                        ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                        ->where('role_user.role_id', '7')
+                        ->where('water_quality_results.created_by', $submitted_by)
+                        ->where('tbl_water.upid', $upid)
+                        ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                        ->orderBy('water_quality_results.report_date','DESC')
+                        ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                            'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                            'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                            'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                            'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                            'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                            'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+                }elseif(!empty($distid)){
+                    $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                        ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                        ->where('role_user.role_id', '7')
+                        ->where('water_quality_results.created_by', $submitted_by)
+                        ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                        ->where('tbl_water.distid', $distid)
+                        ->orderBy('water_quality_results.report_date','DESC')
+                        ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                            'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                            'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                            'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                            'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                            'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                            'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+                }else{
+                    $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                        ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                        ->where('role_user.role_id', '7')
+                        ->where('water_quality_results.created_by', $submitted_by)
+                        ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                        ->orderBy('water_quality_results.report_date','DESC')
+                        ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                            'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                            'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                            'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                            'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                            'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                            'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+                }
+            }
+
+        } elseif($starting_date != "" && $ending_date != ""){
+            $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                ->where('role_user.role_id', '7')
+                ->whereDate('report_date', '>=', $starting_date)->whereDate('report_date', '<=', $ending_date)
+                ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                ->orderBy('water_quality_results.report_date','DESC')
+                ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                    'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                    'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                    'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                    'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                    'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                    'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+        } else {
+            if(!empty($unid))
+            {
+                $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                    ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                    ->where('role_user.role_id', '7')
+                    ->where('tbl_water.unid', $unid)
+                    ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                    ->orderBy('water_quality_results.report_date','DESC')
+                    ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                        'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                        'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                        'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                        'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                        'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                        'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+            }elseif(!empty($upid)){
+                $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                    ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                    ->where('role_user.role_id', '7')
+                    ->where('tbl_water.upid', $upid)
+                    ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                    ->orderBy('water_quality_results.report_date','DESC')
+                    ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                        'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                        'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                        'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                        'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                        'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                        'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+            }elseif(!empty($distid)){
+                $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                    ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                    ->where('role_user.role_id', '7')
+                    ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                    ->where('tbl_water.distid', $distid)
+                    ->orderBy('water_quality_results.report_date','DESC')
+                    ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                        'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                        'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                        'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                        'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                        'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                        'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+            }else{
+                $q = Water::join('water_quality_results', 'water_quality_results.water_id', '=', 'tbl_water.id')
+                    ->join('role_user', 'role_user.user_id', '=', 'water_quality_results.created_by')
+                    ->where('role_user.role_id', '7')
+                    ->where('tbl_water.proj_id', auth()->user()->proj_id)
+                    ->orderBy('water_quality_results.report_date','DESC')
+                    ->select('tbl_water.id', 'tbl_water.CDF_no', 'tbl_water.Technology_Type', 'tbl_water.Ward_no', 'tbl_water.Village', 'tbl_water.App_date',
+                        'tbl_water.Landowner', 'tbl_water.Caretaker_male', 'tbl_water.Caretaker_female', 'tbl_water.Ward_no', 'tbl_water.depth', 'tbl_water.unid',
+                        'tbl_water.upid', 'tbl_water.distid', 'tbl_water.proj_id',
+                        'water_quality_results.arsenic as wq_Arsenic', 'water_quality_results.fe as wq_fe',
+                        'water_quality_results.cl as wq_cl', 'water_quality_results.mn as wq_mn', 'water_quality_results.tc as wq_tc',
+                        'water_quality_results.fc as wq_fc', 'water_quality_results.report_date as wq_test_date', 'role_user.role_id',
+                        'water_quality_results.lon as x_coord', 'water_quality_results.lat as y_coord', 'water_quality_results.created_by');
+            }
+        }
+
+        if($this->pagination){
+            $this->datas = $q->paginate(15);
+        }else{
+            $this->datas = $q->get();
+        }
+    }
+
+    public function get()
+    {
+        return $this->datas;
+    }
+}
