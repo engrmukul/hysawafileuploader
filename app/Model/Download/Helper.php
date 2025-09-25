@@ -18,4 +18,13 @@ class Helper
 
         return $formatted;
     }
+
+    public static function normalizeRtype($v) {
+        if (!isset($v) || in_array(strtolower($v), ['', '0', 'empty', 'No'], true)) {
+            return '';
+        } elseif ($v == 1) {
+            return 'Yes';
+        }
+        return $v;
+    }
 }

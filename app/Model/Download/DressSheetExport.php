@@ -289,6 +289,19 @@ class DressSheetExport implements FromCollection, WithHeadings, WithTitle, WithE
                         }
                     }
 
+                    // ✅ Check M–AZ columns (11–46)
+                    for ($col = 13; $col <= 52; $col++) {
+                        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                        $checkCell = $colLetter . $row;
+                        $value = $sheet->getCell($checkCell)->getValue();
+
+                        if (strtoupper(trim($value)) === 'YES') {
+                            $sheet->getStyle($checkCell)->applyFromArray([
+                                'font' => ['color' => ['rgb' => 'FF0000'], 'bold' => true], // Red
+                            ]);
+                        }
+                    }
+
                     $row++;
                 }
             },

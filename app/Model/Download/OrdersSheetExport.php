@@ -92,7 +92,7 @@ class OrdersSheetExport implements FromCollection, WithHeadings, WithTitle, With
                     'catchment_area'     => $item->catchment_area     ?? '',
                     'catchment_material' => $item->catchment_material ?? '',
                     'capacity_liter'     => $item->capacity_liter     ?? '',
-                    'is_om_req'          => $item->is_om_req          ?? '',
+                    'is_om_req' => (isset($item->is_om_req) && strtolower($item->is_om_req) === 'yes') ? 'Yes' : 'No',
                     'is_manged'          => $is_manged                ?? '',
                     'comments'           => $item->comments           ?? '',
                     'image' => '=HYPERLINK("http://hysawa.com/mis/public/upload/sp_satkhira_infras/'.$item->image.'", "Image Link")'  ?? '',

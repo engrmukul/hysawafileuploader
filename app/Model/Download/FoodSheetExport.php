@@ -4,6 +4,7 @@ namespace App\Model\Download;
 
 use App\Model\SPRepairRen;
 use App\Model\SPRepairType;
+use DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -28,11 +29,19 @@ class FoodSheetExport implements FromCollection, WithHeadings, WithTitle, WithEv
             'SpInfrastructure.school.upazila',
             'SpInfrastructure.school.union'
         ])
+            ->where(DB::raw('GREATEST(
+        rtype1, rtype2, rtype3, rtype4, rtype5, rtype6, rtype7, rtype8,
+        rtype9, rtype10, rtype11, rtype12, rtype13, rtype14, rtype15, rtype16,
+        rtype17, rtype18, rtype19, rtype20, rtype21, rtype22, rtype23, rtype24,
+        rtype25, rtype26, rtype27, rtype28, rtype29, rtype30, rtype31, rtype32,
+        rtype33, rtype34, rtype35, rtype36
+    )'), '!=', 0)
             ->whereHas('SpInfrastructure.school', function ($query2) {
                 $query2->where('sp_school.distid', '7');
             })
             ->whereHas('SpInfrastructure', function ($query2) {
                 $query2->whereNotNull('sp_infrastructure.ren_om_id')
+                ->where('sp_infrastructure.is_active', '3')
                 ->orderBy('sp_infrastructure.id');
             })
 
@@ -89,42 +98,42 @@ class FoodSheetExport implements FromCollection, WithHeadings, WithTitle, WithEv
                     'upazila_name'   => ucfirst(strtolower($item->spinfrastructure->school->upazila->upname)) ?? '',
                     'district_name'  => ucfirst(strtolower($item->spinfrastructure->school->district->distname)) ?? '',
 
-                    'rtype1'  => $item->rtype1 ?? '',
-                    'rtype2'  => $item->rtype2 ?? '',
-                    'rtype3'  => $item->rtype3 ?? '',
-                    'rtype4'  => $item->rtype4 ?? '',
-                    'rtype5'  => $item->rtype5 ?? '',
-                    'rtype6'  => $item->rtype6 ?? '',
-                    'rtype7'  => $item->rtype7 ?? '',
-                    'rtype8'  => $item->rtype8 ?? '',
-                    'rtype9'  => $item->rtype9 ?? '',
-                    'rtype10' => $item->rtype10 ?? '',
-                    'rtype11' => $item->rtype11 ?? '',
-                    'rtype12' => $item->rtype12 ?? '',
-                    'rtype13' => $item->rtype13 ?? '',
-                    'rtype14' => $item->rtype14 ?? '',
-                    'rtype15' => $item->rtype15 ?? '',
-                    'rtype16' => $item->rtype16 ?? '',
-                    'rtype17' => $item->rtype17 ?? '',
-                    'rtype18' => $item->rtype18 ?? '',
-                    'rtype19' => $item->rtype19 ?? '',
-                    'rtype20' => $item->rtype20 ?? '',
-                    'rtype21' => $item->rtype21 ?? '',
-                    'rtype22' => $item->rtype22 ?? '',
-                    'rtype23' => $item->rtype23 ?? '',
-                    'rtype24' => $item->rtype24 ?? '',
-                    'rtype25' => $item->rtype25 ?? '',
-                    'rtype26' => $item->rtype26 ?? '',
-                    'rtype27' => $item->rtype27 ?? '',
-                    'rtype28' => $item->rtype28 ?? '',
-                    'rtype29' => $item->rtype29 ?? '',
-                    'rtype30' => $item->rtype30 ?? '',
-                    'rtype31' => $item->rtype31 ?? '',
-                    'rtype32' => $item->rtype32 ?? '',
-                    'rtype33' => $item->rtype33 ?? '',
-                    'rtype34' => $item->rtype34 ?? '',
-                    'rtype35' => $item->rtype35 ?? '',
-                    'rtype36' => $item->rtype36 ?? '',
+                    'rtype1'  => Helper::normalizeRtype($item->rtype1 ?? null),
+                    'rtype2'  => Helper::normalizeRtype($item->rtype2 ?? null),
+                    'rtype3'  => Helper::normalizeRtype($item->rtype3 ?? null),
+                    'rtype4'  => Helper::normalizeRtype($item->rtype4 ?? null),
+                    'rtype5'  => Helper::normalizeRtype($item->rtype5 ?? null),
+                    'rtype6'  => Helper::normalizeRtype($item->rtype6 ?? null),
+                    'rtype7'  => Helper::normalizeRtype($item->rtype7 ?? null),
+                    'rtype8'  => Helper::normalizeRtype($item->rtype8 ?? null),
+                    'rtype9'  => Helper::normalizeRtype($item->rtype9 ?? null),
+                    'rtype10' => Helper::normalizeRtype($item->rtype10 ?? null),
+                    'rtype11' => Helper::normalizeRtype($item->rtype11 ?? null),
+                    'rtype12' => Helper::normalizeRtype($item->rtype12 ?? null),
+                    'rtype13' => Helper::normalizeRtype($item->rtype13 ?? null),
+                    'rtype14' => Helper::normalizeRtype($item->rtype14 ?? null),
+                    'rtype15' => Helper::normalizeRtype($item->rtype15 ?? null),
+                    'rtype16' => Helper::normalizeRtype($item->rtype16 ?? null),
+                    'rtype17' => Helper::normalizeRtype($item->rtype17 ?? null),
+                    'rtype18' => Helper::normalizeRtype($item->rtype18 ?? null),
+                    'rtype19' => Helper::normalizeRtype($item->rtype19 ?? null),
+                    'rtype20' => Helper::normalizeRtype($item->rtype20 ?? null),
+                    'rtype21' => Helper::normalizeRtype($item->rtype21 ?? null),
+                    'rtype22' => Helper::normalizeRtype($item->rtype22 ?? null),
+                    'rtype23' => Helper::normalizeRtype($item->rtype23 ?? null),
+                    'rtype24' => Helper::normalizeRtype($item->rtype24 ?? null),
+                    'rtype25' => Helper::normalizeRtype($item->rtype25 ?? null),
+                    'rtype26' => Helper::normalizeRtype($item->rtype26 ?? null),
+                    'rtype27' => Helper::normalizeRtype($item->rtype27 ?? null),
+                    'rtype28' => Helper::normalizeRtype($item->rtype28 ?? null),
+                    'rtype29' => Helper::normalizeRtype($item->rtype29 ?? null),
+                    'rtype30' => Helper::normalizeRtype($item->rtype30 ?? null),
+                    'rtype31' => Helper::normalizeRtype($item->rtype31 ?? null),
+                    'rtype32' => Helper::normalizeRtype($item->rtype32 ?? null),
+                    'rtype33' => Helper::normalizeRtype($item->rtype33 ?? null),
+                    'rtype34' => Helper::normalizeRtype($item->rtype34 ?? null),
+                    'rtype35' => Helper::normalizeRtype($item->rtype35 ?? null),
+                    'rtype36' => Helper::normalizeRtype($item->rtype36 ?? null),
                     (int)$total_cost ?? '',
                     $is_manged ?? '',
                 ];
@@ -236,6 +245,22 @@ class FoodSheetExport implements FromCollection, WithHeadings, WithTitle, WithEv
                             'font' => ['color' => ['rgb' => '0000FF'], 'underline' => 'single'],
                         ]);
                     }
+                    // ✅ Check K–AT columns (11–46)
+                    for ($col = 11; $col <= 46; $col++) {
+                        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                        $checkCell = $colLetter . $row;
+                        $value = $sheet->getCell($checkCell)->getValue();
+
+                        if (strtoupper(trim($value)) === 'YES') {
+                            $sheet->getStyle($checkCell)->applyFromArray([
+                                'font' => ['color' => ['rgb' => 'FF0000'], 'bold' => true], // Red
+                            ]);
+                        }
+                    }
+                    // ✅ AU column (47th column) → Bold text
+                    $sheet->getStyle("AU{$row}")->applyFromArray([
+                        'font' => ['bold' => true],
+                    ]);
                     $row++;
                 }
             },
