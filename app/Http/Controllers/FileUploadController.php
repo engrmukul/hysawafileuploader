@@ -34,7 +34,7 @@ class FileUploadController extends Controller
 
         //get role from role_user table
         $role = DB::table('role_user')->where('user_id', $this->user->id)->first();
-        if (!$role || !in_array($role->role_id, [14, 15])) {
+        if (!$role || in_array($role->role_id, [14, 15])) {
             return view('errors.user_not_found', ['message' => 'User role not found']);
         }
 
