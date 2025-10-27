@@ -142,7 +142,11 @@
                         @if(isset($institutionDetails) && !empty($institutionDetails->img9))
                             <div id="previous-image-preview" class="mt-2 row">
                                 <div class="preview-img-wrapper">
-                                    <img src="{{ Storage::disk('mis_uploads')->url((old('upload_type', $uploadType ?? '') === 'institute') ? 'sp_satkhira_inst' : 'sp_satkhira_infras') . '/' . $institutionDetails->img9 }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;">
+                                    @if((old('upload_type', $uploadType ?? '') == 'institute'))
+                                    <img src="{{ Storage::disk('mis_uploads')->url('sp_satkhira_inst') . '/' . $institutionDetails->img9 }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;">
+                                    @elseif((old('upload_type', $uploadType ?? '') == 'infrastructure'))
+                                    <img src="{{ Storage::disk('mis_uploads')->url('sp_satkhira_infras') . '/' . $infrastructure->image }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;">
+                                    @endif
                                 </div>
                             </div>
                         @else
