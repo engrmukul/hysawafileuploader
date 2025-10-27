@@ -139,10 +139,10 @@
                         <label for="files">Files</label>
                         <input type="file" name="files[]" id="files" class="form-control" multiple>
                         <div id="file-preview" class="mt-2 row"></div>
-                        @if(isset($institutionDetails) && !empty($institutionDetails->img1))
+                        @if(isset($institutionDetails) && !empty($institutionDetails->img9))
                             <div id="previous-image-preview" class="mt-2 row">
                                 <div class="preview-img-wrapper">
-                                    <img src="{{ Storage::disk('mis_uploads')->url((old('upload_type', $uploadType ?? '') === 'institute') ? 'sp_satkhira_inst' : 'sp_satkhira_infras') . '/' . $institutionDetails->img1 }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;">
+                                    <img src="{{ Storage::disk('mis_uploads')->url((old('upload_type', $uploadType ?? '') === 'institute') ? 'sp_satkhira_inst' : 'sp_satkhira_infras') . '/' . $institutionDetails->img9 }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;">
                                 </div>
                             </div>
                         @else
@@ -201,7 +201,7 @@
 
             fileInput.addEventListener('change', function (e) {
                 filesArray = Array.from(fileInput.files);
-                
+
                 //hide previous-image-preview div
                 $('#previous-image-preview').hide();
 
