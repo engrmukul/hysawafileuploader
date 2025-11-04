@@ -11,6 +11,9 @@ class FileUploadController extends Controller
 {
     protected $username;
     protected $user;
+    protected $school_id;
+    protected $upload_type;
+    protected $water_id;
 
     //add constructor and get query parameter
     public function __construct(Request $request)
@@ -18,6 +21,9 @@ class FileUploadController extends Controller
         $this->username = $request->query('username');
         $this->username = base64_decode($this->username);
         $this->user = DB::table('users')->where('email', $this->username)->first();
+        $this->upload_type = $request->query('upload_type');
+        $this->school_id = $request->query('school_id');
+        $this->water_id = $request->query('water_id');
     }
 
     /**
@@ -27,28 +33,52 @@ class FileUploadController extends Controller
      */
     public function showForm()
     {
+
+
         if (!$this->user) {
             return view('errors.user_not_found', ['message' => 'User not found']);
+        }
+
+        $institutionDetails = '';
+
+
+        //GET SINGLE DATA FROM sp_school TABLE BASED ON school_id
+        if ($this->school_id) {
+            $institutionDetails = DB::table('sp_school')
+                ->where('id', $this->school_id)
+                ->first();
         }
 
 
         //get role from role_user table
         $role = DB::table('role_user')->where('user_id', $this->user->id)->first();
-        if (!$role || in_array($role->role_id, [14, 15])) {
+
+
+        // if (!$role || in_array($role->role_id, [14, 15])) {
+        if (!$role || in_array($role->role_id, [14])) {
             return view('errors.user_not_found', ['message' => 'User role not found']);
         }
 
         $districts = DB::table('fdistrict')
-            ->whereIn('id', [41, 32, 7])
+            ->whereIn('id', [41, 32, 7, 6])
             ->get();
-        $upazilas = [];
-        $unions = [];
+        $upazilas = \DB::table('fupazila')->where('disid', $institutionDetails->distid ?? '')->get(['id', 'upname']);
+        $unions = DB::table('funion')->where('upid', $institutionDetails->upid ?? '')->get(['id', 'unname']);
         $institutionTypes = DB::table('sp_school')
             ->select('sch_type_edu')
             ->groupBy('sch_type_edu')
             ->get();
 
         $institutions = [];
+        if ($institutionDetails) {
+            $institutions = DB::table('sp_school')->where('id', $institutionDetails->id)->get();
+        }
+
+        $infrastructures = [];
+        if ($institutionDetails) {
+            $infrastructures = DB::table('sp_infrastructure')->where('school_id', $institutionDetails->id)->get();
+        }
+
 
         return view('file_upload_form', [
             'districts' => $districts,
@@ -56,7 +86,11 @@ class FileUploadController extends Controller
             'unions' => $unions,
             'institutionTypes' => $institutionTypes,
             'institutions' => $institutions,
-            'userId' => $this->user->id
+            'infrastructures' => $infrastructures,
+            'userId' => $this->user->id,
+            'uploadType' => $this->upload_type,
+            'institutionDetails' => $institutionDetails,
+            'waterId' => $this->water_id ?? '',
         ]);
     }
 
@@ -109,7 +143,7 @@ class FileUploadController extends Controller
 
 
 
-          $data = [
+            $data = [
                 'sch_name_en' => $request->institution_name ?? $institution->institution_name,
                 // 'sch_name_bn' => $request->institution_name_1_bn ?? $institution->institution_name_1_bn,
                 'lat' => $request->institution_latitude ?? $institution->institution_latitude,
@@ -119,9 +153,9 @@ class FileUploadController extends Controller
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
                     $image = Image::make($file)->resize(800, 600, function ($constraint) {
-        $constraint->aspectRatio(); // Keeps the original aspect ratio
-        $constraint->upsize();      // Prevents upsizing if image is smaller than target
-    })->encode('jpg', 90);
+                        $constraint->aspectRatio(); // Keeps the original aspect ratio
+                        $constraint->upsize();      // Prevents upsizing if image is smaller than target
+                    })->encode('jpg', 90);
                     $filename = $institution->institution_id . '.jpg';
                     $path = 'sp_satkhira_inst/' . $filename;
                     Storage::disk('mis_uploads')->put($path, $image);
@@ -131,49 +165,49 @@ class FileUploadController extends Controller
 
             DB::table('sp_school')->where('id', $request->institution_id)->update($data);
 
-    }
+        }
 
 
         if ($request->upload_type == 'infrastructure') {
-                $infrastructure = DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->first();
+            $infrastructure = DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->first();
 
-        $data = [];
+            $data = [];
 
-          if ($request->file('files')){
+            if ($request->file('files')) {
                 foreach ($request->file('files') as $file) {
                     // Convert to jpg
                     $image = Image::make($file)->resize(800, 600, function ($constraint) {
-        $constraint->aspectRatio(); // Keeps the original aspect ratio
-        $constraint->upsize();      // Prevents upsizing if image is smaller than target
-    })->encode('jpg', 90);
+                        $constraint->aspectRatio(); // Keeps the original aspect ratio
+                        $constraint->upsize();      // Prevents upsizing if image is smaller than target
+                    })->encode('jpg', 90);
                     $filename = $infrastructure->water_id . '.jpg';
                     $path = 'sp_satkhira_infras/' . $filename;
                     \Storage::disk('mis_uploads')->put($path, $image); //will change
                 }
                 $data['image'] = $filename;
                 DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->update($data);
-          } else {
-              return redirect()->back()->with('success', 'No Image Selected.');
-          }
+            } else {
+                return redirect()->back()->with('success', 'No Image Selected.');
+            }
 
         }
 
 
         if ($request->upload_type == 'inspection') {
-            $sanitaryInspection = DB::table('sp_san_inspection_v2')->where(['infrastructure_id' => $request->infrastructure_id, 'inspection_date' => $request->inspection_date ])->first();
+            $sanitaryInspection = DB::table('sp_san_inspection_v2')->where(['infrastructure_id' => $request->infrastructure_id, 'inspection_date' => $request->inspection_date])->first();
 
             $uploadedImages = [];
             foreach ($request->file('files') as $key => $file) {
                 // Convert to jpg
                 $image = Image::make($file)->resize(800, 600, function ($constraint) {
-        $constraint->aspectRatio(); // Keeps the original aspect ratio
-        $constraint->upsize();      // Prevents upsizing if image is smaller than target
-    })->encode('jpg', 90);
-                $filename =  time() . '_' . $key . '.jpg';
+                    $constraint->aspectRatio(); // Keeps the original aspect ratio
+                    $constraint->upsize();      // Prevents upsizing if image is smaller than target
+                })->encode('jpg', 90);
+                $filename = time() . '_' . $key . '.jpg';
                 $path = 'sp_si_img/' . $filename;
                 \Storage::disk('mis_uploads')->put($path, $image);
 
-                $uploadedImages[] = 'upload/sp_si_img/'.$filename;
+                $uploadedImages[] = 'upload/sp_si_img/' . $filename;
             }
 
             DB::table('sp_san_inspection_v2')->where('id', $sanitaryInspection->id)->update([
@@ -213,8 +247,8 @@ class FileUploadController extends Controller
             ->where('unid', $union_id)
             ->where('sch_type_edu', $institution_type)
             ->where(function ($query) use ($user_id, $role_id) {
-                if($role_id == '14')
-                $query->where('created_by', $user_id);
+                if ($role_id == '14')
+                    $query->where('created_by', $user_id);
             })
             ->get(['id', 'sch_name_en', 'lat', 'lon', 'img9']);
 
@@ -235,7 +269,7 @@ class FileUploadController extends Controller
 
     public function getInspectionDate($infrastructure_id)
     {
-            $inspectionDates =  \DB::table('sp_san_inspection_v2')
+        $inspectionDates = \DB::table('sp_san_inspection_v2')
             ->where('infrastructure_id', $infrastructure_id)
             ->groupBy('inspection_date')
             ->get(['inspection_date']);
