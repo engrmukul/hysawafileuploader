@@ -157,8 +157,15 @@ class FileUploadController extends Controller
                         $constraint->upsize();      // Prevents upsizing if image is smaller than target
                     })->encode('jpg', 90);
                     $filename = $institution->institution_id . '.jpg';
-                    $path = 'sp_satkhira_inst/' . $filename;
-                    Storage::disk('mis_uploads')->put($path, $image);
+
+                    //IF DISTRICT IS KHULNA THEN SAVE IN khulna_uploads
+                    if ($institution->distid == 6) {
+                        $path = 'SafePani_School_Baseline_Photo/' . $filename;
+                        \Storage::disk('mis_khulna_uploads')->put($path, $image);
+                    } else {
+                        $path = 'sp_satkhira_inst/' . $filename;
+                        \Storage::disk('mis_uploads')->put($path, $image);
+                    }
                 }
                 $data['img9'] = $filename;
             }
@@ -171,6 +178,10 @@ class FileUploadController extends Controller
         if ($request->upload_type == 'infrastructure') {
             $infrastructure = DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->first();
 
+            // Manually get school.distid
+            $school = DB::table('sp_school')->where('id', $infrastructure->school_id)->first();
+            $distId = $school->distid ?? null;
+
             $data = [];
 
             if ($request->file('files')) {
@@ -181,8 +192,15 @@ class FileUploadController extends Controller
                         $constraint->upsize();      // Prevents upsizing if image is smaller than target
                     })->encode('jpg', 90);
                     $filename = $infrastructure->water_id . '.jpg';
-                    $path = 'sp_satkhira_infras/' . $filename;
-                    \Storage::disk('mis_uploads')->put($path, $image); //will change
+
+                    //IF DISTRICT IS KHULNA THEN SAVE IN khulna_uploads
+                    if ($distId == 6) {
+                        $path = 'SafePani_Waterpoints_Photo/' . $filename;
+                        \Storage::disk('mis_khulna_uploads')->put($path, $image);
+                    } else {
+                        $path = 'sp_satkhira_infras/' . $filename;
+                        \Storage::disk('mis_uploads')->put($path, $image);
+                    }
                 }
                 $data['image'] = $filename;
                 DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->update($data);
@@ -196,6 +214,11 @@ class FileUploadController extends Controller
         if ($request->upload_type == 'inspection') {
             $sanitaryInspection = DB::table('sp_san_inspection_v2')->where(['infrastructure_id' => $request->infrastructure_id, 'inspection_date' => $request->inspection_date])->first();
 
+            
+            // Manually get school.distid
+            $school = DB::table('sp_school')->where('id', $sanitaryInspection->school_id)->first();
+            $distId = $school->distid ?? null;
+            
             $uploadedImages = [];
             foreach ($request->file('files') as $key => $file) {
                 // Convert to jpg
@@ -204,10 +227,21 @@ class FileUploadController extends Controller
                     $constraint->upsize();      // Prevents upsizing if image is smaller than target
                 })->encode('jpg', 90);
                 $filename = time() . '_' . $key . '.jpg';
-                $path = 'sp_si_img/' . $filename;
-                \Storage::disk('mis_uploads')->put($path, $image);
 
-                $uploadedImages[] = 'upload/sp_si_img/' . $filename;
+
+                 //IF DISTRICT IS KHULNA THEN SAVE IN khulna_uploads
+                if ($distId == 6) {
+                    $path = 'SafePani_Waterpoints_Photo/' . $filename;
+                    \Storage::disk('mis_khulna_uploads')->put($path, $image);
+                    $uploadedImages[] = 'sp_assets/SafePani_Waterpoints_Photo/' . $filename;
+                } else {
+                    $path = 'sp_si_img/' . $filename;
+                    \Storage::disk('mis_uploads')->put($path, $image);
+                    $uploadedImages[] = 'upload/sp_si_img/' . $filename;
+                }
+
+
+
             }
 
             DB::table('sp_san_inspection_v2')->where('id', $sanitaryInspection->id)->update([

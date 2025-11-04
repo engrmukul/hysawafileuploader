@@ -63,6 +63,14 @@ return [
             'visibility' => 'public',
         ],
 
+
+        'mis_khulna_uploads' => [
+            'driver' => 'local',
+            'root' => base_path('../mis/public/sp_assets'), // points to other project
+            'url' => env('APP_URL').'/mis/public/sp_assets',
+            'visibility' => 'public',
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
