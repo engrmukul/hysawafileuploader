@@ -151,6 +151,7 @@ class FileUploadController extends Controller
             ];
 
             if ($request->hasFile('files')) {
+                $prevPath = '';
                 foreach ($request->file('files') as $file) {
                     $image = Image::make($file)->resize(800, 600, function ($constraint) {
                         $constraint->aspectRatio(); // Keeps the original aspect ratio
@@ -161,6 +162,20 @@ class FileUploadController extends Controller
                     //IF DISTRICT IS KHULNA THEN SAVE IN khulna_uploads
                     if ($institution->distid == 6) {
                         $path = 'SafePani_School_Baseline_Photo/' . $filename;
+
+                        // If file exists, rename existing file with suffix _prev9 (avoid collision by timestamp if needed)
+                        if (\Storage::disk('mis_khulna_uploads')->exists($path)) {
+                            $pathInfo = pathinfo($path);
+                            $extension = $pathInfo['extension'] ?? 'jpg';
+                            $prevPath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '_prev9.' . $extension;
+
+                            if (\Storage::disk('mis_khulna_uploads')->exists($prevPath)) {
+                                $prevPath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '_prev9_' . time() . '.' . $extension;
+                            }
+
+                            \Storage::disk('mis_khulna_uploads')->move($path, $prevPath);
+                        }
+
                         \Storage::disk('mis_khulna_uploads')->put($path, $image);
                     } else {
                         $path = 'sp_satkhira_inst/' . $filename;
@@ -170,6 +185,11 @@ class FileUploadController extends Controller
                 $data['img9'] = $filename;
             }
 
+            // preserve existing img9 into img9_prev then update img9 with new filename
+            if ($prevPath) {
+                $data['img9_prev'] = $prevPath;
+            }
+            $data['img9'] = $filename;
             DB::table('sp_school')->where('id', $request->institution_id)->update($data);
 
         }
