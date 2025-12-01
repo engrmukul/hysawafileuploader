@@ -139,10 +139,20 @@
                         <label for="files">Files</label>
                         <input type="file" name="files[]" id="files" class="form-control" multiple>
                         <div id="file-preview" class="mt-2 row"></div>
-                        @if(isset($institutionDetails) && !empty($institutionDetails->img1))
+                        @if(isset($institutionDetails) && !empty($institutionDetails->img9))
                             <div id="previous-image-preview" class="mt-2 row">
                                 <div class="preview-img-wrapper">
-                                    <img src="{{ Storage::disk('mis_uploads')->url((old('upload_type', $uploadType ?? '') === 'institute') ? 'sp_satkhira_inst' : 'sp_satkhira_infras') . '/' . $institutionDetails->img1 }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;">
+                                    @php
+                                        $dist = $institutionDetails->dist_id ?? $institutionDetails->distid ?? null;
+                                        if ($dist == 6) {
+                                            $imgPath = Storage::disk('public')->url('sp_assets/SafePani_School_Baseline_Photo/' . $institutionDetails->img9);
+                                        } else {
+                                            $folder = (old('upload_type', $uploadType ?? '') === 'institute') ? 'sp_satkhira_inst' : 'sp_satkhira_infras';
+                                            $imgPath = Storage::disk('mis_uploads')->url($folder . '/' . $institutionDetails->img1);
+                                        }
+                                    @endphp
+
+                                    <img src="{{ $imgPath }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;">
                                 </div>
                             </div>
                         @else
