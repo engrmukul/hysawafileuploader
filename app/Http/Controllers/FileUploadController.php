@@ -69,7 +69,7 @@ class FileUploadController extends Controller
             ->groupBy('sch_type_edu')
             ->get();
 
-        $institutions = [];
+       $institutions = [];
         if ($institutionDetails) {
             $institutions = DB::table('sp_school')->where('id', $institutionDetails->id)->get();
         }
@@ -78,6 +78,20 @@ class FileUploadController extends Controller
         if ($institutionDetails) {
             $infrastructures = DB::table('sp_infrastructure')->where('school_id', $institutionDetails->id)->get();
         }
+        
+        $imageType = '';
+        if($this->upload_type == 'institute'){
+            $imageType = 'INS';
+        }
+         if($this->upload_type == 'infrastructure'){
+            $imageType = 'INF';
+        }
+        
+         $allImages =  DB::table('sp_images')
+        ->where('ist_inf_id', '=',$institutionDetails->id)
+        ->where('image_type','=', $imageType)
+        ->get();
+        
 
 
         return view('file_upload_form', [
@@ -90,7 +104,8 @@ class FileUploadController extends Controller
             'userId' => $this->user->id,
             'uploadType' => $this->upload_type,
             'institutionDetails' => $institutionDetails,
-            'waterId' => $this->water_id ?? '',
+            'waterId' => $this->water_id ?? '',,
+            'allImages' => $allImages
         ]);
     }
 

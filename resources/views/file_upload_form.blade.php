@@ -139,20 +139,58 @@
                         <label for="files">Files</label>
                         <input type="file" name="files[]" id="files" class="form-control" multiple>
                         <div id="file-preview" class="mt-2 row"></div>
-                        @if(isset($institutionDetails) && !empty($institutionDetails->img9))
+                        @if(isset($institutionDetails) && !empty($institutionDetails))
                             <div id="previous-image-preview" class="mt-2 row">
                                 <div class="preview-img-wrapper">
-                                    @php
+                                    <!-- @php
                                         $dist = $institutionDetails->dist_id ?? $institutionDetails->distid ?? null;
                                         if ($dist == 6) {
-                                            $imgPath = Storage::disk('public')->url('sp_assets/SafePani_School_Baseline_Photo/' . $institutionDetails->img9);
+                                            $imgPath = "http://www.hysawa.com/mis/public/sp_assets/SafePani_School_Baseline_Photo/' . $institutionDetails->img1";
                                         } else {
                                             $folder = (old('upload_type', $uploadType ?? '') === 'institute') ? 'sp_satkhira_inst' : 'sp_satkhira_infras';
                                             $imgPath = Storage::disk('mis_uploads')->url($folder . '/' . $institutionDetails->img1);
                                         }
                                     @endphp
 
-                                    <img src="{{ $imgPath }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;">
+                                    <img src="{{ $imgPath }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;"> -->
+
+
+                                    @php
+                                        $dist = $institutionDetails->dist_id ?? $institutionDetails->distid ?? null;
+                                        $uploadTypeValue = old('upload_type', $uploadType ?? '');
+                                    @endphp
+                                    
+                                    @foreach ($allImages as $img)
+                                        @php
+                                            // Every record is an object from query builder
+                                            $filename = $img->image ?? null;
+                                    
+                                            if (!$filename) continue;
+                                    
+                                            $filename = ltrim($filename, '/');
+                                    
+                                            if ($dist == 6) {
+                                                // Path for district 6
+                                                $folderName = ($uploadTypeValue === 'institute') ? 'SafePani_School_Baseline_Photo' : 'SafePani_Waterpoints_Photo';
+                                                $imgPath = "https://www.hysawa.com/mis/public/sp_assets/{$folderName}/{$filename}";
+                                            } else {
+                                                // Path for other districts
+                                                $folder = ($uploadTypeValue === 'institute')
+                                                    ? 'sp_satkhira_inst'
+                                                    : 'sp_satkhira_infras';
+                                    
+                                                $imgPath = Storage::disk('mis_uploads')->url("{$folder}/{$filename}");
+                                            }
+                                        @endphp
+                                    
+                                        <div class="preview-img-wrapper">
+                                            <img src="{{ $imgPath }}" class="preview-img"
+                                                 style="width:100px;height:100px;object-fit:cover;">
+                                        </div>
+                                    @endforeach
+
+
+                                    
                                 </div>
                             </div>
                         @else
