@@ -14,6 +14,7 @@ class FileUploadController extends Controller
     protected $school_id;
     protected $upload_type;
     protected $water_id;
+    protected $id;
 
     //add constructor and get query parameter
     public function __construct(Request $request)
@@ -24,6 +25,7 @@ class FileUploadController extends Controller
         $this->upload_type = $request->query('upload_type');
         $this->school_id = $request->query('school_id');
         $this->water_id = $request->query('water_id');
+        $this->id = $request->query('id');
     }
 
     /**
@@ -41,6 +43,22 @@ class FileUploadController extends Controller
 
         $institutionDetails = '';
 
+        $sanv2 = '';
+
+        if($this->id){
+            $sanv2 = DB::table('sp_san_inspection_v2')
+                ->where('id', $this->id)
+                ->first();
+
+            $infrastructure = DB::table('sp_infrastructure')
+                ->where('id', $sanv2->infrastructure_id)
+                ->first();
+
+            $institutionDetails = DB::table('sp_school')
+                ->where('id', $infrastructure->school_id)
+                ->first();
+
+        }
 
         //GET SINGLE DATA FROM sp_school TABLE BASED ON school_id
         if ($this->school_id) {
@@ -92,6 +110,7 @@ class FileUploadController extends Controller
         ->where('image_type','=', $imageType)
         ->get();
         
+        //dd($sanv2);
 
 
         return view('file_upload_form', [
@@ -102,10 +121,11 @@ class FileUploadController extends Controller
             'institutions' => $institutions,
             'infrastructures' => $infrastructures,
             'userId' => $this->user->id,
-            'uploadType' => $this->upload_type,
+            'uploadType' => empty($this->upload_type) ? 'inspection' : $this->upload_type,
             'institutionDetails' => $institutionDetails,
-            'waterId' => $this->water_id ?? '',,
-            'allImages' => $allImages
+            'waterId' => $this->water_id ?? '',
+            'allImages' => $allImages,
+            'sanv2' => $sanv2,
         ]);
     }
 
@@ -117,10 +137,10 @@ class FileUploadController extends Controller
      */
     public function upload(Request $request)
     {
-        $request->merge([
-            'institution_latitude' => trim($request->input('institution_latitude')),
-            'institution_longitude' => trim($request->input('institution_longitude')),
-        ]);
+        // $request->merge([
+        //     'institution_latitude' => trim($request->input('institution_latitude')),
+        //     'institution_longitude' => trim($request->input('institution_longitude')),
+        // ]);
 
 
         try {
@@ -134,8 +154,8 @@ class FileUploadController extends Controller
                 'infrastructure_id' => 'nullable|integer',
                 'files' => 'nullable|array',
                 'files.*' => 'file|mimes:jpg,jpeg,png|max:102400',
-                'institution_latitude' => 'required',
-                'institution_longitude' => 'required'
+               // 'institution_latitude' => 'required',
+               // 'institution_longitude' => 'required'
             ]);
 
             if ($validator->fails()) {

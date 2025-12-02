@@ -36,6 +36,10 @@ Route::get('/get-infrastructures/{institution_id}', [FileUploadController::class
 //get-inspaction-images
 Route::get('/get-inspaction-images/{infrastructure_id}/{inspaction_date}', [FileUploadController::class, 'getInspactionImages'])->name('get-inspaction-images');
 
+//get-inspaction-dates
+Route::get('/get-inspaction-dates/{infrastructure_id}', [FileUploadController::class, 'getInspectionDate'])->name('get-inspaction-dates');
+
+
 //institution-edit
 Route::get('/institution-edit/', [InstitutionController::class, 'edit'])->name('institution.edit');
 //institution-update

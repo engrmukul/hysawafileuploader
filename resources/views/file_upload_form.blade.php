@@ -99,7 +99,7 @@
                 <div class="col-md-6">
                     <div class="form-group" id="institution_name_1_group">
                         <label for="institution_name">Institution English Name (For Edit)</label>
-                        <input type="text" name="institution_name" id="institution_name_1" value="{{ old('institution_name', $institutionDetails->sch_name_en ?? '') }}" class="form-control" required>
+                        <input type="text" name="institution_name" id="institution_name_1" value="{{ old('institution_name', $institutionDetails->sch_name_en ?? '') }}" class="form-control">
                     </div>
                     <!-- <div class="form-group" id="institution_name_1_bn_group">
                         <label for="institution_name_1_bn">Institution Bangla Name</label>
@@ -107,20 +107,18 @@
                     </div> -->
                     <div class="form-group" id="institution_latitude_group">
                         <label for="institution_latitude">Latitude</label>
-                        <input type="text" name="institution_latitude" id="institution_latitude" value="{{ old('institution_latitude', $institutionDetails->lat ?? '') }}" class="form-control"
-                            required>
+                        <input type="text" name="institution_latitude" id="institution_latitude" value="{{ old('institution_latitude', $institutionDetails->lat ?? '') }}" class="form-control">
                     </div>
                     <div class="form-group" id="institution_longitude_group">
                         <label for="institution_longitude">Longitude</label>
-                        <input type="text" name="institution_longitude" id="institution_longitude" value="{{ old('institution_longitude', $institutionDetails->lon ?? '') }}" class="form-control"
-                            required>
+                        <input type="text" name="institution_longitude" id="institution_longitude" value="{{ old('institution_longitude', $institutionDetails->lon ?? '') }}" class="form-control">
                     </div>
                     <div class="form-group" id="infrastructure_group">
                         <label for="infrastructure_name">Infrastructure Name</label>
                         <select name="infrastructure_id" id="infrastructure_name" class="form-control">
                             <option value="">Select Infrastructure</option>
                             @foreach($infrastructures as $infrastructure)
-                                <option value="{{ $infrastructure->id }}" {{ (old('infrastructure_id', $waterId ?? '') == $infrastructure->water_id) ? 'selected' : '' }}>
+                                <option value="{{ $infrastructure->id }}" {{ (old('infrastructure_id', $sanv2->water_id ?? '') == $infrastructure->water_id) ? 'selected' : '' }}>
                                     {{ $infrastructure->water_id }}
                                 </option>
                             @endforeach
@@ -131,66 +129,85 @@
                         <label for="inspaction_date">Inspaction Date</label>
                         <select name="inspection_date" id="inspaction_date" class="form-control">
                             <option value="">Select Date</option>
+                            @if(!empty($sanv2->inspection_date))
+                                <option value="{{ $sanv2->inspection_date }}" {{ (old('inspection_date', $sanv2->inspection_date) == $sanv2->inspection_date) ? 'selected' : '' }}>
+                                    {{ $sanv2->inspection_date }}
+                                </option>
+                            @endif
                         </select>
                     </div>
 
 
                     <div class="form-group">
                         <label for="files">Files</label>
-                        <input type="file" name="files[]" id="files" class="form-control" multiple>
+                        <input type="file" name="files[]" id="files" class="form-control" accept="image/*" multiple onchange="if(this.files.length>3){alert('You can upload a maximum of 3 images.'); this.value='';}">
                         <div id="file-preview" class="mt-2 row"></div>
+
                         @if(isset($institutionDetails) && !empty($institutionDetails))
                             <div id="previous-image-preview" class="mt-2 row">
                                 <div class="preview-img-wrapper">
-                                    <!-- @php
-                                        $dist = $institutionDetails->dist_id ?? $institutionDetails->distid ?? null;
-                                        if ($dist == 6) {
-                                            $imgPath = "http://www.hysawa.com/mis/public/sp_assets/SafePani_School_Baseline_Photo/' . $institutionDetails->img1";
-                                        } else {
-                                            $folder = (old('upload_type', $uploadType ?? '') === 'institute') ? 'sp_satkhira_inst' : 'sp_satkhira_infras';
-                                            $imgPath = Storage::disk('mis_uploads')->url($folder . '/' . $institutionDetails->img1);
-                                        }
-                                    @endphp
-
-                                    <img src="{{ $imgPath }}" class="preview-img" style="width:100px;height:100px;object-fit:cover;"> -->
-
-
                                     @php
                                         $dist = $institutionDetails->dist_id ?? $institutionDetails->distid ?? null;
                                         $uploadTypeValue = old('upload_type', $uploadType ?? '');
                                     @endphp
-                                    
-                                    @foreach ($allImages as $img)
-                                        @php
-                                            // Every record is an object from query builder
-                                            $filename = $img->image ?? null;
-                                    
-                                            if (!$filename) continue;
-                                    
-                                            $filename = ltrim($filename, '/');
-                                    
-                                            if ($dist == 6) {
-                                                // Path for district 6
-                                                $folderName = ($uploadTypeValue === 'institute') ? 'SafePani_School_Baseline_Photo' : 'SafePani_Waterpoints_Photo';
-                                                $imgPath = "https://www.hysawa.com/mis/public/sp_assets/{$folderName}/{$filename}";
-                                            } else {
-                                                // Path for other districts
-                                                $folder = ($uploadTypeValue === 'institute')
-                                                    ? 'sp_satkhira_inst'
-                                                    : 'sp_satkhira_infras';
-                                    
-                                                $imgPath = Storage::disk('mis_uploads')->url("{$folder}/{$filename}");
-                                            }
-                                        @endphp
-                                    
-                                        <div class="preview-img-wrapper">
-                                            <img src="{{ $imgPath }}" class="preview-img"
-                                                 style="width:100px;height:100px;object-fit:cover;">
-                                        </div>
-                                    @endforeach
 
+                                    @if(!empty($sanv2))
+                                        @if(!empty($sanv2->image1))
+                                            <div class="preview-img-wrapper">
+                                                <img src="{{ 'https://www.hysawa.com/mis/public/' . ltrim($sanv2->image1, '/') }}"
+                                                    class="preview-img"
+                                                    style="width:100px;height:100px;object-fit:cover;">
+                                            </div>
+                                        @endif
 
-                                    
+                                        @if(!empty($sanv2->image2))
+                                            <div class="preview-img-wrapper">
+                                                <img src="{{ 'https://www.hysawa.com/mis/public/' . ltrim($sanv2->image2, '/') }}"
+                                                    class="preview-img"
+                                                    style="width:100px;height:100px;object-fit:cover;">
+                                            </div>
+                                        @endif
+
+                                        @if(!empty($sanv2->image3))
+                                            <div class="preview-img-wrapper">
+                                                <img src="{{ 'https://www.hysawa.com/mis/public/' . ltrim($sanv2->image3, '/') }}"
+                                                    class="preview-img"
+                                                    style="width:100px;height:100px;object-fit:cover;">
+                                            </div>
+                                        @endif
+                                    @else
+                                        @foreach ($allImages as $img)
+                                            @php
+                                                $filename = $img->image ?? null;
+                                                if (!$filename) {
+                                                    continue;
+                                                }
+
+                                                $filename = ltrim($filename, '/');
+
+                                                if ($dist == 6) {
+                                                    // Path for district 6
+                                                    $folderName = ($uploadTypeValue === 'institute')
+                                                        ? 'SafePani_School_Baseline_Photo'
+                                                        : 'SafePani_Waterpoints_Photo';
+
+                                                    $imgPath = "https://www.hysawa.com/mis/public/sp_assets/{$folderName}/{$filename}";
+                                                } else {
+                                                    // Path for other districts
+                                                    $folder = ($uploadTypeValue === 'institute')
+                                                        ? 'sp_satkhira_inst'
+                                                        : 'sp_satkhira_infras';
+
+                                                    $imgPath = Storage::disk('mis_uploads')->url("{$folder}/{$filename}");
+                                                }
+                                            @endphp
+
+                                            <div class="preview-img-wrapper">
+                                                <img src="{{ $imgPath }}" class="preview-img"
+                                                    style="width:100px;height:100px;object-fit:cover;">
+                                            </div>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </div>
                         @else
@@ -199,6 +216,7 @@
                             </div>
                         @endif
                     </div>
+
                 </div>
 
                 <style>
@@ -560,6 +578,7 @@
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {
+                            console.log(data);
                             $inspaction_date.empty();
                             $inspaction_date.append('<option value="">Select Inspaction Date</option>');
                             $.each(data, function (i, inspactionInfo) {
