@@ -118,7 +118,7 @@
                         <select name="infrastructure_id" id="infrastructure_name" class="form-control">
                             <option value="">Select Infrastructure</option>
                             @foreach($infrastructures as $infrastructure)
-                                <option value="{{ $infrastructure->id }}" {{ (old('infrastructure_id', $sanv2->water_id ?? '') == $infrastructure->water_id) ? 'selected' : '' }}>
+                                <option value="{{ $infrastructure->id }}" {{ (old('infrastructure_id', $waterId ?? '') == $infrastructure->water_id) ? 'selected' : '' }}>
                                     {{ $infrastructure->water_id }}
                                 </option>
                             @endforeach
@@ -267,7 +267,7 @@
 
             fileInput.addEventListener('change', function (e) {
                 filesArray = Array.from(fileInput.files);
-                
+
                 //hide previous-image-preview div
                 $('#previous-image-preview').hide();
 

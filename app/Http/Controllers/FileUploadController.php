@@ -96,21 +96,25 @@ class FileUploadController extends Controller
         if ($institutionDetails) {
             $infrastructures = DB::table('sp_infrastructure')->where('school_id', $institutionDetails->id)->get();
         }
-        
+
         $imageType = '';
+        $ist_inf_id = '';
         if($this->upload_type == 'institute'){
             $imageType = 'INS';
+            $ist_inf_id = $institutionDetails->id;
         }
          if($this->upload_type == 'infrastructure'){
             $imageType = 'INF';
+             $result = DB::table('sp_infrastructure')
+                 ->where('id', $this->water_id)
+                 ->first();
+             $ist_inf_id = $result->id ?? '';
         }
-        
+
          $allImages =  DB::table('sp_images')
-        ->where('ist_inf_id', '=',$institutionDetails->id)
+        ->where('ist_inf_id', '=',$ist_inf_id)
         ->where('image_type','=', $imageType)
         ->get();
-        
-        //dd($sanv2);
 
 
         return view('file_upload_form', [
@@ -227,6 +231,14 @@ class FileUploadController extends Controller
             $data['img9'] = $filename;
             DB::table('sp_school')->where('id', $request->institution_id)->update($data);
 
+            // Save image record in sp_images table
+            DB::table('sp_images')->insert([
+                'ist_inf_id' => $request->institution_id,
+                'image_type' => 'INS',
+                'image' => $data['img9'],
+                'updated_at' => now(),
+            ]);
+
         }
 
 
@@ -259,6 +271,15 @@ class FileUploadController extends Controller
                 }
                 $data['image'] = $filename;
                 DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->update($data);
+
+                // Save image record in sp_images table
+                DB::table('sp_images')->insert([
+                    'ist_inf_id' => $request->infrastructure_id,
+                    'image_type' => 'INF',
+                    'image' => $data['image'],
+                    'updated_at' => now(),
+                ]);
+
             } else {
                 return redirect()->back()->with('success', 'No Image Selected.');
             }
@@ -269,11 +290,11 @@ class FileUploadController extends Controller
         if ($request->upload_type == 'inspection') {
             $sanitaryInspection = DB::table('sp_san_inspection_v2')->where(['infrastructure_id' => $request->infrastructure_id, 'inspection_date' => $request->inspection_date])->first();
 
-            
+
             // Manually get school.distid
             $school = DB::table('sp_school')->where('id', $sanitaryInspection->school_id)->first();
             $distId = $school->distid ?? null;
-            
+
             $uploadedImages = [];
             foreach ($request->file('files') as $key => $file) {
                 // Convert to jpg
@@ -287,7 +308,7 @@ class FileUploadController extends Controller
                  //IF DISTRICT IS KHULNA THEN SAVE IN khulna_uploads
                 if ($distId == 6) {
                     $path = 'SafePani_Waterpoints_Photo/' . $filename;
-                    \Storage::disk('mis_khulna_uploads')->put($path, $image);
+                    \Storage::disk('sp_assets')->put($path, $image);
                     $uploadedImages[] = 'sp_assets/SafePani_Waterpoints_Photo/' . $filename;
                 } else {
                     $path = 'sp_si_img/' . $filename;
