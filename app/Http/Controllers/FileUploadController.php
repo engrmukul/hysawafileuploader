@@ -106,10 +106,10 @@ class FileUploadController extends Controller
          if($this->upload_type == 'infrastructure'){
             $imageType = 'INF';
              $result = DB::table('sp_infrastructure')
-                 ->where('id', $this->water_id)
+                 ->where('water_id', $this->water_id)
                  ->first();
              $ist_inf_id = $result->id ?? '';
-        }
+         }
 
          $allImages =  DB::table('sp_images')
         ->where('ist_inf_id', '=',$ist_inf_id)
@@ -196,7 +196,7 @@ class FileUploadController extends Controller
                         $constraint->aspectRatio(); // Keeps the original aspect ratio
                         $constraint->upsize();      // Prevents upsizing if image is smaller than target
                     })->encode('jpg', 90);
-                    $filename = $institution->institution_id . '.jpg';
+                    $filename = $institution->institution_id . '_'.time().'.jpg';
 
                     //IF DISTRICT IS KHULNA THEN SAVE IN khulna_uploads
                     if ($institution->distid == 6) {
@@ -258,7 +258,7 @@ class FileUploadController extends Controller
                         $constraint->aspectRatio(); // Keeps the original aspect ratio
                         $constraint->upsize();      // Prevents upsizing if image is smaller than target
                     })->encode('jpg', 90);
-                    $filename = $infrastructure->water_id . '.jpg';
+                    $filename = $infrastructure->water_id . '_'.time().'.jpg';
 
                     //IF DISTRICT IS KHULNA THEN SAVE IN khulna_uploads
                     if ($distId == 6) {
@@ -384,7 +384,17 @@ class FileUploadController extends Controller
             ->groupBy('inspection_date')
             ->get(['inspection_date']);
 
-        return response()->json($inspectionDates);
+        $allImages =  DB::table('sp_images')
+            ->where('ist_inf_id', '=',$infrastructure_id)
+            ->where('image_type','=', 'INF')
+            ->get(['image']);
+
+        $data = [
+            'inspection_dates' => $inspectionDates,
+            'all_images' => $allImages,
+        ];
+
+        return response()->json($data);
     }
 
     public function getInspactionImages($infrastructure_id, $inspaction_date)

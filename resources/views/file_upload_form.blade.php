@@ -154,7 +154,7 @@
                                     @if(!empty($sanv2))
                                         @if(!empty($sanv2->image1))
                                             <div class="preview-img-wrapper">
-                                                <img src="{{ 'https://www.hysawa.com/mis/public/' . ltrim($sanv2->image1, '/') }}"
+                                                <img src="{{ 'http://www.hysawa.com/mis/public/' . ltrim($sanv2->image1, '/') }}"
                                                     class="preview-img"
                                                     style="width:100px;height:100px;object-fit:cover;">
                                             </div>
@@ -162,7 +162,7 @@
 
                                         @if(!empty($sanv2->image2))
                                             <div class="preview-img-wrapper">
-                                                <img src="{{ 'https://www.hysawa.com/mis/public/' . ltrim($sanv2->image2, '/') }}"
+                                                <img src="{{ 'http://www.hysawa.com/mis/public/' . ltrim($sanv2->image2, '/') }}"
                                                     class="preview-img"
                                                     style="width:100px;height:100px;object-fit:cover;">
                                             </div>
@@ -170,7 +170,7 @@
 
                                         @if(!empty($sanv2->image3))
                                             <div class="preview-img-wrapper">
-                                                <img src="{{ 'https://www.hysawa.com/mis/public/' . ltrim($sanv2->image3, '/') }}"
+                                                <img src="{{ 'http://www.hysawa.com/mis/public/' . ltrim($sanv2->image3, '/') }}"
                                                     class="preview-img"
                                                     style="width:100px;height:100px;object-fit:cover;">
                                             </div>
@@ -191,7 +191,7 @@
                                                         ? 'SafePani_School_Baseline_Photo'
                                                         : 'SafePani_Waterpoints_Photo';
 
-                                                    $imgPath = "https://www.hysawa.com/mis/public/sp_assets/{$folderName}/{$filename}";
+                                                    $imgPath = "http://www.hysawa.com/mis/public/sp_assets/{$folderName}/{$filename}";
                                                 } else {
                                                     // Path for other districts
                                                     $folder = ($uploadTypeValue === 'institute')
@@ -578,16 +578,29 @@
                         type: 'GET',
                         dataType: 'json',
                         success: function (data) {
-                            console.log(data);
                             $inspaction_date.empty();
                             $inspaction_date.append('<option value="">Select Inspaction Date</option>');
-                            $.each(data, function (i, inspactionInfo) {
+                            $.each(data.inspection_dates, function (i, inspactionInfo) {
+                                console.log(inspactionInfo);
                                 $inspaction_date.append('<option value="' + inspactionInfo.inspection_date + '">' + inspactionInfo.inspection_date + '</option>');
                             });
 
-                            var imgUrl = "{{ Storage::disk('mis_uploads')->url('sp_satkhira_infras') }}/" + selectedInfrastructureImage;
-                            var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
+
+                            //data.all_images array render all images in #previous-image-preview
+                            if (data.all_images.length) {
+                                 $.each(data.all_images, function (i, image) {
+                                     var imgUrl = ("{{ Storage::disk('mis_uploads')->url('/sp_assets/SafePani_Waterpoints_Photo/') }}" + image.image).replace('upload/', '');
+                                     var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
+                                     $prevImg.append(imgTag);
+                                 });
+                             } else {
+                                 $prevImg.html('<span class="text-muted">No images found.</span>');
+                             }
+
+                           // var imgUrl = "{{ Storage::disk('')->url('sp_assets/SafePani_Waterpoints_Photo') }}/" + selectedInfrastructureImage;
+                            //var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
                             $prevImg.html(imgTag);
+
                         },
                         error: function () {
                             $inspaction_date.empty();
