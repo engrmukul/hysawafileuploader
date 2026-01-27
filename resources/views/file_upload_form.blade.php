@@ -33,9 +33,9 @@
                         <label for="upload_type">Upload Type</label>
                         <select name="upload_type" id="upload_type" class="form-control" required>
                             <option value="">Select Upload Type</option>
-                            <option value="institute">Institute</option>
-                            <option value="infrastructure">Infrastructure</option>
-                            <option value="inspection">Sanitary Inspection</option>
+                            <option value="institute" {{ (old('upload_type', $uploadType ?? '') == 'institute') ? 'selected' : '' }}>Institute</option>
+                            <option value="infrastructure" {{ (old('upload_type', $uploadType ?? '') == 'infrastructure') ? 'selected' : '' }}>Infrastructure</option>
+                            <option value="inspection" {{ (old('upload_type', $uploadType ?? '') == 'inspection') ? 'selected' : '' }}>Sanitary Inspection</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -43,7 +43,9 @@
                         <select name="district" id="district" class="form-control" required>
                             <option value="">Select District</option>
                             @foreach($districts as $district)
-                                <option value="{{ $district->id }}">{{ $district->distname }}</option>
+                                <option value="{{ $district->id }}" {{ (old('district', $institutionDetails->distid ?? '') == $district->id) ? 'selected' : '' }}>
+                                    {{ $district->distname }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -51,12 +53,22 @@
                         <label for="upazila">Upazila</label>
                         <select name="upazila" id="upazila" class="form-control" required>
                             <option value="">Select Upazila</option>
+                            @foreach($upazilas as $upazila)
+                                <option value="{{ $upazila->id }}" {{ (old('upazila', $institutionDetails->upid ?? '') == $upazila->id) ? 'selected' : '' }}>
+                                    {{ $upazila->upname }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="union">Union</label>
                         <select name="union" id="union" class="form-control" required>
                             <option value="">Select Union</option>
+                            @foreach($unions as $union)
+                                <option value="{{ $union->id }}" {{ (old('union', $institutionDetails->unid ?? '') == $union->id) ? 'selected' : '' }}>
+                                    {{ $union->unname }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="form-group">
@@ -64,7 +76,9 @@
                         <select name="institution_type" id="institution_type" class="form-control" required>
                             <option value="">Select Type</option>
                             @foreach($institutionTypes as $type)
-                                <option value="{{ $type->sch_type_edu }}">{{ $type->sch_type_edu }}</option>
+                                <option value="{{ $type->sch_type_edu }}" {{ (old('institution_type', $institutionDetails->sch_type_edu ?? '') == $type->sch_type_edu) ? 'selected' : '' }}>
+                                    {{ $type->sch_type_edu }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -72,6 +86,11 @@
                         <label for="institution_name">Institution Name</label>
                         <select name="institution_id" id="institution_name" class="form-control" required>
                             <option value="">Select Institution</option>
+                            @foreach($institutions as $institution)
+                                <option value="{{ $institution->id }}" {{ (old('institution_id', $institutionDetails->id ?? '') == $institution->id) ? 'selected' : '' }}>
+                                    {{ $institution->sch_name_en }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -80,7 +99,7 @@
                 <div class="col-md-6">
                     <div class="form-group" id="institution_name_1_group">
                         <label for="institution_name">Institution English Name (For Edit)</label>
-                        <input type="text" name="institution_name" id="institution_name_1" class="form-control" required>
+                        <input type="text" name="institution_name" id="institution_name_1" value="{{ old('institution_name', $institutionDetails->sch_name_en ?? '') }}" class="form-control">
                     </div>
                     <!-- <div class="form-group" id="institution_name_1_bn_group">
                         <label for="institution_name_1_bn">Institution Bangla Name</label>
@@ -88,18 +107,21 @@
                     </div> -->
                     <div class="form-group" id="institution_latitude_group">
                         <label for="institution_latitude">Latitude</label>
-                        <input type="text" name="institution_latitude" id="institution_latitude" class="form-control"
-                            required>
+                        <input type="text" name="institution_latitude" id="institution_latitude" value="{{ old('institution_latitude', $institutionDetails->lat ?? '') }}" class="form-control">
                     </div>
                     <div class="form-group" id="institution_longitude_group">
                         <label for="institution_longitude">Longitude</label>
-                        <input type="text" name="institution_longitude" id="institution_longitude" class="form-control"
-                            required>
+                        <input type="text" name="institution_longitude" id="institution_longitude" value="{{ old('institution_longitude', $institutionDetails->lon ?? '') }}" class="form-control">
                     </div>
                     <div class="form-group" id="infrastructure_group">
                         <label for="infrastructure_name">Infrastructure Name</label>
                         <select name="infrastructure_id" id="infrastructure_name" class="form-control">
                             <option value="">Select Infrastructure</option>
+                            @foreach($infrastructures as $infrastructure)
+                                <option value="{{ $infrastructure->id }}" {{ (old('infrastructure_id', $waterId ?? '') == $infrastructure->water_id) ? 'selected' : '' }}>
+                                    {{ $infrastructure->water_id }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -107,16 +129,94 @@
                         <label for="inspaction_date">Inspaction Date</label>
                         <select name="inspection_date" id="inspaction_date" class="form-control">
                             <option value="">Select Date</option>
+                            @if(!empty($sanv2->inspection_date))
+                                <option value="{{ $sanv2->inspection_date }}" {{ (old('inspection_date', $sanv2->inspection_date) == $sanv2->inspection_date) ? 'selected' : '' }}>
+                                    {{ $sanv2->inspection_date }}
+                                </option>
+                            @endif
                         </select>
                     </div>
 
 
                     <div class="form-group">
                         <label for="files">Files</label>
-                        <input type="file" name="files[]" id="files" class="form-control" multiple>
+                        <input type="file" name="files[]" id="files" class="form-control" accept="image/*" multiple onchange="if(this.files.length>3){alert('You can upload a maximum of 3 images.'); this.value='';}">
                         <div id="file-preview" class="mt-2 row"></div>
-                        <div id="previous-image-preview" class="mt-2 row"></div>
+
+                        @if(isset($institutionDetails) && !empty($institutionDetails))
+                            <div id="previous-image-preview" class="mt-2 row">
+                                <div class="preview-img-wrapper">
+                                    @php
+                                        $dist = $institutionDetails->dist_id ?? $institutionDetails->distid ?? null;
+                                        $uploadTypeValue = old('upload_type', $uploadType ?? '');
+                                    @endphp
+
+                                    @if(!empty($sanv2))
+                                        @if(!empty($sanv2->image1))
+                                            <div class="preview-img-wrapper">
+                                                <img src="{{ 'http://www.hysawa.com/mis/public/' . ltrim($sanv2->image1, '/') }}"
+                                                    class="preview-img"
+                                                    style="width:100px;height:100px;object-fit:cover;">
+                                            </div>
+                                        @endif
+
+                                        @if(!empty($sanv2->image2))
+                                            <div class="preview-img-wrapper">
+                                                <img src="{{ 'http://www.hysawa.com/mis/public/' . ltrim($sanv2->image2, '/') }}"
+                                                    class="preview-img"
+                                                    style="width:100px;height:100px;object-fit:cover;">
+                                            </div>
+                                        @endif
+
+                                        @if(!empty($sanv2->image3))
+                                            <div class="preview-img-wrapper">
+                                                <img src="{{ 'http://www.hysawa.com/mis/public/' . ltrim($sanv2->image3, '/') }}"
+                                                    class="preview-img"
+                                                    style="width:100px;height:100px;object-fit:cover;">
+                                            </div>
+                                        @endif
+                                    @else
+                                        @foreach ($allImages as $img)
+                                            @php
+                                                $filename = $img->image ?? null;
+                                                if (!$filename) {
+                                                    continue;
+                                                }
+
+                                                $filename = ltrim($filename, '/');
+
+                                                if ($dist == 6) {
+                                                    // Path for district 6
+                                                    $folderName = ($uploadTypeValue === 'institute')
+                                                        ? 'SafePani_School_Baseline_Photo'
+                                                        : 'SafePani_Waterpoints_Photo';
+
+                                                    $imgPath = "http://www.hysawa.com/mis/public/sp_assets/{$folderName}/{$filename}";
+                                                } else {
+                                                    // Path for other districts
+                                                    $folder = ($uploadTypeValue === 'institute')
+                                                        ? 'sp_satkhira_inst'
+                                                        : 'sp_satkhira_infras';
+
+                                                    $imgPath = Storage::disk('mis_uploads')->url("{$folder}/{$filename}");
+                                                }
+                                            @endphp
+
+                                            <div class="preview-img-wrapper">
+                                                <img src="{{ $imgPath }}" class="preview-img"
+                                                    style="width:100px;height:100px;object-fit:cover;">
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
+                            </div>
+                        @else
+                            <div id="previous-image-preview" class="mt-2 row">
+                                <span class="text-muted">No previous image found.</span>
+                            </div>
+                        @endif
                     </div>
+
                 </div>
 
                 <style>
@@ -167,6 +267,10 @@
 
             fileInput.addEventListener('change', function (e) {
                 filesArray = Array.from(fileInput.files);
+
+                //hide previous-image-preview div
+                $('#previous-image-preview').hide();
+
                 renderPreviews();
             });
 
@@ -220,6 +324,40 @@
             $('#institution_latitude_group').hide();
             $('#institution_longitude_group').hide();
             $('#inspaction_date_section').hide();
+
+
+            var selectedUploadType = '{{ old('upload_type', $uploadType ?? '') }}';
+
+            if (selectedUploadType === 'infrastructure' || selectedUploadType === 'inspection') {
+
+                    if (selectedUploadType === 'inspection') {
+                        $('#inspaction_date_section').show();
+                    } else {
+                        $('#inspaction_date_section').hide();
+                    }
+
+                    $('#infrastructure_group').show();
+                    $('#institution_name_1_group').hide();
+                    // $('#institution_name_1_bn_group').hide();
+                    $('#institution_latitude_group').hide();
+                    $('#institution_longitude_group').hide();
+                    $('#institution_name_1').val('');
+                    $('#institution_name_1_bn').val('');
+                    $('#institution_latitude').val('');
+                    $('#institution_longitude').val('');
+
+                } else {
+                    $('#infrastructure_group').hide();
+                    $('#infrastructure_name').val('');
+                    $('#institution_name_1_group').show();
+                    // $('#institution_name_1_bn_group').show();
+                    $('#institution_latitude_group').show();
+                    $('#institution_longitude_group').show();
+                    $('#inspaction_date_section').hide();
+                }
+
+
+
             // Show/hide infrastructure_name based on upload_type
             $('#upload_type').on('change', function () {
 
@@ -442,13 +580,27 @@
                         success: function (data) {
                             $inspaction_date.empty();
                             $inspaction_date.append('<option value="">Select Inspaction Date</option>');
-                            $.each(data, function (i, inspactionInfo) {
+                            $.each(data.inspection_dates, function (i, inspactionInfo) {
+                                console.log(inspactionInfo);
                                 $inspaction_date.append('<option value="' + inspactionInfo.inspection_date + '">' + inspactionInfo.inspection_date + '</option>');
                             });
 
-                            var imgUrl = "{{ Storage::disk('mis_uploads')->url('sp_satkhira_infras') }}/" + selectedInfrastructureImage;
-                            var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
+
+                            //data.all_images array render all images in #previous-image-preview
+                            if (data.all_images.length) {
+                                 $.each(data.all_images, function (i, image) {
+                                     var imgUrl = ("{{ Storage::disk('mis_uploads')->url('/sp_assets/SafePani_Waterpoints_Photo/') }}" + image.image).replace('upload/', '');
+                                     var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
+                                     $prevImg.append(imgTag);
+                                 });
+                             } else {
+                                 $prevImg.html('<span class="text-muted">No images found.</span>');
+                             }
+
+                           // var imgUrl = "{{ Storage::disk('')->url('sp_assets/SafePani_Waterpoints_Photo') }}/" + selectedInfrastructureImage;
+                            //var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
                             $prevImg.html(imgTag);
+
                         },
                         error: function () {
                             $inspaction_date.empty();

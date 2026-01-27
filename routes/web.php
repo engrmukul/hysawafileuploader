@@ -15,6 +15,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+use App\Http\Controllers\ExportController;
+use App\Http\Controllers\ExportControllerSat;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\InstitutionController;
 use App\Http\Controllers\WaterPointController;
@@ -35,6 +37,10 @@ Route::get('/get-infrastructures/{institution_id}', [FileUploadController::class
 //get-inspaction-images
 Route::get('/get-inspaction-images/{infrastructure_id}/{inspaction_date}', [FileUploadController::class, 'getInspactionImages'])->name('get-inspaction-images');
 
+//get-inspaction-dates
+Route::get('/get-inspaction-dates/{infrastructure_id}', [FileUploadController::class, 'getInspectionDate'])->name('get-inspaction-dates');
+
+
 //institution-edit
 Route::get('/institution-edit/', [InstitutionController::class, 'edit'])->name('institution.edit');
 //institution-update
@@ -48,3 +54,6 @@ Route::post('/water-point-store/', [WaterPointController::class, 'store'])->name
 Route::get('/water-point-edit/', [WaterPointController::class, 'edit'])->name('water-point.edit');
 //water-point-update
 Route::post('/water-point-update/', [WaterPointController::class, 'update'])->name('water-point.update');
+Route::get('/download-survey-data-rY37J9/', [ExportController::class, 'download'])->name('survey-download');
+Route::get('/download-khl-institution-t66Y4f/', [ExportController::class, 'exportInstitutionsKhl']);
+Route::get('/download-sat-institution-t29Y4f/', [ExportController::class, 'exportInstitutionsSat']);
