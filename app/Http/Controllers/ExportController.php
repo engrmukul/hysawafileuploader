@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 
+use App\Exports\AllInstitutionExportKhl;
+use App\Exports\AllInstitutionExportSat;
 use App\Model\Download\MultiSheetExport;
 use App\Model\SPSanAnswerObs;
 use Maatwebsite\Excel\Facades\Excel;
@@ -31,6 +33,22 @@ class ExportController extends Controller
         return Excel::download(
             new MultiSheetExport,
             date("d-m-Y").' Satkhira Survey Dataset.xlsx'
+        );
+    }
+
+    public function exportInstitutionsKhl()
+    {
+        return Excel::download(
+            new AllInstitutionExportKhl(),
+            date("d-m-Y").' SafePani All Institutions - Khulna.xlsx'
+        );
+    }
+
+    public function exportInstitutionsSat()
+    {
+        return Excel::download(
+            new AllInstitutionExportSat(),
+            date("d-m-Y").' SafePani All Institutions - Satkhira.xlsx'
         );
     }
 }

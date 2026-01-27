@@ -16,6 +16,7 @@ Route::get('/', function () {
 });
 
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\ExportControllerSat;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\InstitutionController;
 use App\Http\Controllers\WaterPointController;
@@ -54,3 +55,5 @@ Route::get('/water-point-edit/', [WaterPointController::class, 'edit'])->name('w
 //water-point-update
 Route::post('/water-point-update/', [WaterPointController::class, 'update'])->name('water-point.update');
 Route::get('/download-survey-data-rY37J9/', [ExportController::class, 'download'])->name('survey-download');
+Route::get('/download-khl-institution-t66Y4f/', [ExportController::class, 'exportInstitutionsKhl']);
+Route::get('/download-sat-institution-t29Y4f/', [ExportController::class, 'exportInstitutionsSat']);
