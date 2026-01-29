@@ -140,7 +140,7 @@
 
                     <div class="form-group">
                         <label for="files">Files</label>
-                        <input type="file" name="files[]" id="files" class="form-control" accept="image/*" multiple onchange="if(this.files.length>3){alert('You can upload a maximum of 3 images.'); this.value='';}">
+                        <input type="file" name="files[]" id="files" class="form-control" accept="image/*" multiple onchange="validateImageLimit(this)">
                         <div id="file-preview" class="mt-2 row"></div>
 
                         @if(isset($institutionDetails) && !empty($institutionDetails))
@@ -571,7 +571,7 @@
                 var $inspaction_date = $('#inspaction_date');
                 $inspaction_date.empty();
                 $inspaction_date.append('<option value="">Loading...</option>');
-                 $prevImg.empty();
+                 //$prevImg.empty();
                 if (infrastructure_Id) {
                     $.ajax({
                         url: '/get-inspaction-dates/' + infrastructure_Id,
@@ -581,20 +581,19 @@
                             $inspaction_date.empty();
                             $inspaction_date.append('<option value="">Select Inspaction Date</option>');
                             $.each(data.inspection_dates, function (i, inspactionInfo) {
-                                console.log(inspactionInfo);
                                 $inspaction_date.append('<option value="' + inspactionInfo.inspection_date + '">' + inspactionInfo.inspection_date + '</option>');
                             });
 
 
                             //data.all_images array render all images in #previous-image-preview
-                            if (data.all_images.length) {
-                                 $.each(data.all_images, function (i, image) {
+                            const uploadType = "{{ $uploadType }}";
+                            if (data.all_images.length && uploadType == 'infrastructure') {
+                                $prevImg.empty();
+                                $.each(data.all_images, function (i, image) {
                                      var imgUrl = ("{{ Storage::disk('mis_uploads')->url('/sp_assets/SafePani_Waterpoints_Photo/') }}" + image.image).replace('upload/', '');
                                      var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
                                      $prevImg.append(imgTag);
                                  });
-                             } else {
-                                 $prevImg.html('<span class="text-muted">No images found.</span>');
                              }
 
                            // var imgUrl = "{{ Storage::disk('')->url('sp_assets/SafePani_Waterpoints_Photo') }}/" + selectedInfrastructureImage;
@@ -621,7 +620,6 @@
                 var $prevImg = $('#previous-image-preview');
                 var inspaction_date = $(this).val();
                 var infrastructure_id = $('#infrastructure_name').val();
-                $prevImg.empty();
                 if (inspaction_date) {
                     $.ajax({
                         url: '/get-inspaction-images/' + infrastructure_id + '/' + inspaction_date,
@@ -631,12 +629,17 @@
                             var images = Object.values(data);
                             if (images.length) {
                                 $.each(images, function (i, image) {
+
+                                    if (!image || image.trim() === '') {
+                                        return; // continue to next iteration
+                                    }
+
+                                    $prevImg.empty();
+
                                     var imgUrl = ("{{ Storage::disk('mis_uploads')->url('/') }}" + image).replace('upload/upload', 'upload');
                                     var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
                                     $prevImg.append(imgTag);
                                 });
-                            } else {
-                                $prevImg.html('<span class="text-muted">No images found.</span>');
                             }
                         },
                         error: function () {
@@ -671,6 +674,22 @@
             });
 
         });
+
+
+
+        var uploadType = "{{ $uploadType ?? '' }}";
+        function validateImageLimit(input) {
+            let maxLimit = 3;
+
+            if (uploadType === 'institute' || uploadType === 'infrastructure') {
+                maxLimit = 1;
+            }
+
+            if (input.files.length > maxLimit) {
+                alert(`You can upload a maximum of ${maxLimit} image${maxLimit > 1 ? 's' : ''}.`);
+                input.value = '';
+            }
+        }
     </script>
 
 

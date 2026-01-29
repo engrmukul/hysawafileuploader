@@ -20,6 +20,7 @@ use App\Http\Controllers\ExportControllerSat;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Controllers\InstitutionController;
 use App\Http\Controllers\WaterPointController;
+use App\Http\Controllers\SPReportController;
 
 
 Route::get('/file-upload', [FileUploadController::class, 'showForm'])->name('file-upload.form');
@@ -57,3 +58,6 @@ Route::post('/water-point-update/', [WaterPointController::class, 'update'])->na
 Route::get('/download-survey-data-rY37J9/', [ExportController::class, 'download'])->name('survey-download');
 Route::get('/download-khl-institution-t66Y4f/', [ExportController::class, 'exportInstitutionsKhl']);
 Route::get('/download-sat-institution-t29Y4f/', [ExportController::class, 'exportInstitutionsSat']);
+
+
+Route::get('/weekly-wq-and-si-report-export/', [SPReportController::class, 'weeklyWqAndSiReportExport']);
