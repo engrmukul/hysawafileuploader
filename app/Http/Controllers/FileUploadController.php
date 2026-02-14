@@ -127,7 +127,7 @@ class FileUploadController extends Controller
             'userId' => $this->user->id,
             'uploadType' => empty($this->upload_type) ? 'inspection' : $this->upload_type,
             'institutionDetails' => $institutionDetails,
-            'waterId' => $this->water_id ?? $sanv2->water_id,
+            'waterId' => isset($this->water_id) ? (isset($sanv2->water_id) ? $sanv2->water_id : '') : '',
             'allImages' => $allImages,
             'sanv2' => $sanv2,
         ]);

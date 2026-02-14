@@ -11,7 +11,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 
-class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
+class WeeklyWqSiReportExportBackup implements FromCollection, WithEvents, WithTitle
 {
     protected $sampleData;
     protected $totals;
@@ -32,12 +32,12 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
 
         // Add empty rows for title area (rows 1-5)
         for ($i = 0; $i < 5; $i++) {
-            $data[] = array_fill(0, 52, '');
+            $data[] = array_fill(0, 40, '');
         }
 
         // Add empty rows for header area (rows 6-8)
         for ($i = 0; $i < 3; $i++) {
-            $data[] = array_fill(0, 52, '');
+            $data[] = array_fill(0, 40, '');
         }
 
         // Data rows
@@ -84,18 +84,6 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                 $row['cs_s2'],
                 $row['cs_fb'],
                 $row['cs_fu'],
-                $row['as_dtw'] ?? 0,
-                $row['as_stw'] ?? 0,
-                $row['as_rwhf'] ?? 0,
-                $row['as_pws'] ?? 0,
-                $row['mn_dtw'] ?? 0,
-                $row['mn_stw'] ?? 0,
-                $row['mn_rwhf'] ?? 0,
-                $row['mn_pws'] ?? 0,
-                $row['cl_dtw'] ?? 0,
-                $row['cl_stw'] ?? 0,
-                $row['cl_rwhf'] ?? 0,
-                $row['cl_pws'] ?? 0,
             ];
         }
 
@@ -141,18 +129,6 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
             $this->totals['cs_s2'] ?? 0,
             $this->totals['cs_fb'] ?? 0,
             $this->totals['cs_fu'] ?? 0,
-            $this->totals['as_dtw'] ?? 0,
-            $this->totals['as_stw'] ?? 0,
-            $this->totals['as_rwhf'] ?? 0,
-            $this->totals['as_pws'] ?? 0,
-            $this->totals['mn_dtw'] ?? 0,
-            $this->totals['mn_stw'] ?? 0,
-            $this->totals['mn_rwhf'] ?? 0,
-            $this->totals['mn_pws'] ?? 0,
-            $this->totals['cl_dtw'] ?? 0,
-            $this->totals['cl_stw'] ?? 0,
-            $this->totals['cl_rwhf'] ?? 0,
-            $this->totals['cl_pws'] ?? 0,
         ];
 
         // Status rows (Q1, Q2, Q3, Q4, etc.)
@@ -198,18 +174,6 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                 $s['cs_s2'] ?? 0,
                 $s['cs_fb'] ?? 0,
                 $s['cs_fu'] ?? 0,
-                $s['as_dtw'] ?? 0,
-                $s['as_stw'] ?? 0,
-                $s['as_rwhf'] ?? 0,
-                $s['as_pws'] ?? 0,
-                $s['mn_dtw'] ?? 0,
-                $s['mn_stw'] ?? 0,
-                $s['mn_rwhf'] ?? 0,
-                $s['mn_pws'] ?? 0,
-                $s['cl_dtw'] ?? 0,
-                $s['cl_stw'] ?? 0,
-                $s['cl_rwhf'] ?? 0,
-                $s['cl_pws'] ?? 0,
             ];
         }
 
@@ -223,7 +187,7 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                 $sheet = $event->sheet->getDelegate();
                 $lastRow = $sheet->getHighestRow();
 
-                // Column mapping: A=1, B=2, ..., AZ=52
+                // Column mapping: A=1, B=2, ..., AN=40
                 // A: Sl, B: Upazila
                 // C-H: Total columns (6 cols)
                 // I-M: SI Type of Technology (5 cols: DTW,STW,RWH,RO,PWS)
@@ -233,33 +197,30 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                 // AB-AF: Disinfection (5 cols)
                 // AG-AJ: Chem Type of Technology (4 cols)
                 // AK-AN: Chemical Sampling (4 cols)
-                // AO-AR: as Detection (4 cols: DTW,STW,RWH with Filter,PWS)
-                // AS-AV: Manganese Detection (4 cols: DTW,STW,RWH with Filter,PWS)
-                // AW-AZ: Chloride Detection (4 cols: DTW,STW,RWH with Filter,PWS)
 
                 // Title rows (1-4)
-                $sheet->mergeCells('A1:AZ1');
+                $sheet->mergeCells('A1:AN1');
                 $sheet->setCellValue('A1', 'HYSAWA');
                 $sheet->getStyle('A1')->applyFromArray([
                     'font' => ['bold' => true, 'size' => 16],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER]
                 ]);
 
-                $sheet->mergeCells('A2:AZ2');
+                $sheet->mergeCells('A2:AN2');
                 $sheet->setCellValue('A2', 'SafePani District Project');
                 $sheet->getStyle('A2')->applyFromArray([
                     'font' => ['bold' => true, 'size' => 14],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER]
                 ]);
 
-                $sheet->mergeCells('A3:AZ3');
+                $sheet->mergeCells('A3:AN3');
                 $sheet->setCellValue('A3', 'Weekly Update, Water Quality');
                 $sheet->getStyle('A3')->applyFromArray([
                     'font' => ['bold' => true, 'size' => 12],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER]
                 ]);
 
-                $sheet->mergeCells('A4:AZ4');
+                $sheet->mergeCells('A4:AN4');
                 $reportPeriodText = $this->reportPeriod ?: 'Cumulative Data (All Time)';
                 $sheet->setCellValue('A4', 'Reporting Period: ' . $reportPeriodText);
                 $sheet->getStyle('A4')->applyFromArray([
@@ -357,9 +318,9 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                 $sheet->setCellValue('AI8', 'RWH with Filter');
                 $sheet->setCellValue('AJ8', 'PWS');
 
-                // STATUS OF SAMPLING DETECTION OF THIS WEEK (cols AK-AZ, row 6)
-                $sheet->mergeCells('AK6:AZ6');
-                $sheet->setCellValue('AK6', 'Status of Sampling, Arsenic, Manganese & Chloride Detection of this Week');
+                // STATUS OF SAMPLING DETECTION OF THIS WEEK (cols AK-AN, row 6)
+                $sheet->mergeCells('AK6:AN6');
+                $sheet->setCellValue('AK6', 'STATUS OF SAMPLING DETECTION OF THIS WEEK');
 
                 // Chemical Sampling (cols AK-AN, row 7)
                 $sheet->mergeCells('AK7:AN7');
@@ -368,30 +329,6 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                 $sheet->setCellValue('AL8', 'Sample 2 (Duplicate)');
                 $sheet->setCellValue('AM8', 'Field Blank');
                 $sheet->setCellValue('AN8', 'Chemical Follow-up');
-
-                // Arsenic (≥0.05 mg/L) (cols AO-AR, row 7)
-                $sheet->mergeCells('AO7:AR7');
-                $sheet->setCellValue('AO7', 'Arsenic (≥0.05 mg/L)');
-                $sheet->setCellValue('AO8', 'DTW');
-                $sheet->setCellValue('AP8', 'STW');
-                $sheet->setCellValue('AQ8', 'RWH with Filter');
-                $sheet->setCellValue('AR8', 'PWS');
-
-                // Manganese (≥0.4 mg/L) (cols AS-AV, row 7)
-                $sheet->mergeCells('AS7:AV7');
-                $sheet->setCellValue('AS7', 'Manganese (≥0.4 mg/L)');
-                $sheet->setCellValue('AS8', 'DTW');
-                $sheet->setCellValue('AT8', 'STW');
-                $sheet->setCellValue('AU8', 'RWH with Filter');
-                $sheet->setCellValue('AV8', 'PWS');
-
-                // Chloride (>1000 mg/L) (cols AW-AZ, row 7)
-                $sheet->mergeCells('AW7:AZ7');
-                $sheet->setCellValue('AW7', 'Chloride (>1000 mg/L)');
-                $sheet->setCellValue('AW8', 'DTW');
-                $sheet->setCellValue('AX8', 'STW');
-                $sheet->setCellValue('AY8', 'RWH with Filter');
-                $sheet->setCellValue('AZ8', 'PWS');
 
                 // Style header rows (6-8)
                 $headerStyle = [
@@ -410,7 +347,7 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                     ]
                 ];
 
-                $sheet->getStyle('A6:AZ8')->applyFromArray($headerStyle);
+                $sheet->getStyle('A6:AN8')->applyFromArray($headerStyle);
 
                 // Style main group headers with different color
                 $mainHeaderStyle = [
@@ -433,7 +370,7 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                 $sheet->getStyle('N6:R6')->applyFromArray($mainHeaderStyle);
                 $sheet->getStyle('S6:AF6')->applyFromArray($mainHeaderStyle);
                 $sheet->getStyle('AG6:AJ6')->applyFromArray($mainHeaderStyle);
-                $sheet->getStyle('AK6:AZ6')->applyFromArray($mainHeaderStyle);
+                $sheet->getStyle('AK6:AN6')->applyFromArray($mainHeaderStyle);
 
                 // Style data area (from row 9 to last row)
                 $dataStyle = [
@@ -446,14 +383,14 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                     ]
                 ];
 
-                $sheet->getStyle("A9:AZ{$lastRow}")->applyFromArray($dataStyle);
+                $sheet->getStyle("A9:AN{$lastRow}")->applyFromArray($dataStyle);
 
                 // Left align Upazila column
                 $sheet->getStyle("B9:B{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
                 // Style Total Progress row (row after data rows)
                 $totalRowIndex = 9 + count($this->sampleData);
-                $sheet->getStyle("A{$totalRowIndex}:AZ{$totalRowIndex}")->applyFromArray([
+                $sheet->getStyle("A{$totalRowIndex}:AN{$totalRowIndex}")->applyFromArray([
                     'font' => ['bold' => true],
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
@@ -465,7 +402,7 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                 $statusStartRow = $totalRowIndex + 1;
                 if (count($this->statusRows) > 0) {
                     $statusEndRow = $statusStartRow + count($this->statusRows) - 1;
-                    $sheet->getStyle("A{$statusStartRow}:AZ{$statusEndRow}")->applyFromArray([
+                    $sheet->getStyle("A{$statusStartRow}:AN{$statusEndRow}")->applyFromArray([
                         'fill' => [
                             'fillType' => Fill::FILL_SOLID,
                             'startColor' => ['argb' => 'E2EFDA']
@@ -484,10 +421,6 @@ class WeeklyWqSiReportExport implements FromCollection, WithEvents, WithTitle
                 }
                 $sheet->getColumnDimension('AA')->setWidth(10);
                 foreach (['AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN'] as $col) {
-                    $sheet->getColumnDimension($col)->setWidth(10);
-                }
-                // Set width for new Arsenic, Manganese, Chloride columns
-                foreach (['AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ'] as $col) {
                     $sheet->getColumnDimension($col)->setWidth(10);
                 }
 
