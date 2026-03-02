@@ -205,6 +205,12 @@
                                             <div class="preview-img-wrapper">
                                                 <img src="{{ $imgPath }}" class="preview-img"
                                                     style="width:100px;height:100px;object-fit:cover;">
+                                                <div class="current-image-radio">
+                                                    <input type="radio" name="current_image" class="current-image-selector"
+                                                        data-image-id="{{ $img->id }}"
+                                                        {{ isset($img->is_current_image) && $img->is_current_image == 1 ? 'checked' : '' }}>
+                                                    <label>Current Image</label>
+                                                </div>
                                             </div>
                                         @endforeach
                                     @endif
@@ -244,6 +250,21 @@
                     .preview-img-wrapper {
                         display: inline-block;
                         position: relative;
+                    }
+
+                    .current-image-radio {
+                        text-align: center;
+                        margin-top: 5px;
+                    }
+
+                    .current-image-radio input[type="radio"] {
+                        cursor: pointer;
+                    }
+
+                    .current-image-radio label {
+                        font-size: 12px;
+                        margin-left: 3px;
+                        cursor: pointer;
                     }
                 </style>
             </div>
@@ -672,6 +693,54 @@
                     }
                 });
             });
+
+            // Handle current image radio button change
+            $(document).on('change', '.current-image-selector', function () {
+                var imageId = $(this).data('image-id');
+                var $radio = $(this);
+
+                $.ajax({
+                    url: '/update-current-image',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        image_id: imageId
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            // Show success message
+                            showNotification('Current image status updated successfully.', 'success');
+                        } else {
+                            showNotification('Failed to update current image status.', 'danger');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        showNotification('Error updating current image.', 'danger');
+                    }
+                });
+            });
+
+            // Function to show notification
+            function showNotification(message, type) {
+                // Remove existing notification if any
+                $('.ajax-notification').remove();
+
+                var alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade show ajax-notification" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">' +
+                    message +
+                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                    '<span aria-hidden="true">&times;</span>' +
+                    '</button>' +
+                    '</div>';
+
+                $('body').append(alertHtml);
+
+                // Auto-hide after 3 seconds
+                setTimeout(function() {
+                    $('.ajax-notification').fadeOut(function() {
+                        $(this).remove();
+                    });
+                }, 3000);
+            }
 
         });
 

@@ -402,4 +402,39 @@ class FileUploadController extends Controller
         return response()->json($inspectionImages);
     }
 
+    /**
+     * Update the current image in sp_images table.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateCurrentImage(Request $request)
+    {
+        $imageId = $request->input('image_id');
+
+        if (!$imageId) {
+            return response()->json(['success' => false, 'message' => 'Image ID is required'], 400);
+        }
+
+        // Get the image record to find the ist_inf_id and image_type
+        $image = DB::table('sp_images')->where('id', $imageId)->first();
+
+        if (!$image) {
+            return response()->json(['success' => false, 'message' => 'Image not found'], 404);
+        }
+
+        // Reset all is_current_image to 0 for the same ist_inf_id and image_type
+        DB::table('sp_images')
+            ->where('ist_inf_id', $image->ist_inf_id)
+            ->where('image_type', $image->image_type)
+            ->update(['is_current_image' => 0]);
+
+        // Set is_current_image to 1 for the selected image
+        DB::table('sp_images')
+            ->where('id', $imageId)
+            ->update(['is_current_image' => 1]);
+
+        return response()->json(['success' => true, 'message' => 'Current image updated successfully']);
+    }
+
 }
