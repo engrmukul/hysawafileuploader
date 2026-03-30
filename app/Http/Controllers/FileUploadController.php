@@ -189,8 +189,9 @@ class FileUploadController extends Controller
                 'lon' => isset($request->institution_longitude) ? $request->institution_longitude : $institution->institution_lon,
             ];
 
+            $prevPath = '';
+            $filename = '';
             if ($request->hasFile('files')) {
-                $prevPath = '';
                 foreach ($request->file('files') as $file) {
                     $image = Image::make($file)->resize(800, 600, function ($constraint) {
                         $constraint->aspectRatio(); // Keeps the original aspect ratio
