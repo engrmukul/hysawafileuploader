@@ -183,10 +183,10 @@ class FileUploadController extends Controller
 
 
             $data = [
-                'sch_name_en' => $request->institution_name ?? $institution->institution_name,
+                'sch_name_en' => isset($request->institution_latitude) ? $request->institution_name : $institution->institution_name,
                 // 'sch_name_bn' => $request->institution_name_1_bn ?? $institution->institution_name_1_bn,
-                'lat' => isset($request->institution_latitude) ? $institution->institution_latitude : "",
-                'lon' => isset($request->institution_longitude) ? $institution->institution_longitude : "",
+                'lat' => isset($request->institution_latitude) ? $request->institution_latitude : $institution->institution_lat,
+                'lon' => isset($request->institution_longitude) ? $request->institution_longitude : $institution->institution_lon,
             ];
 
             if ($request->hasFile('files')) {
