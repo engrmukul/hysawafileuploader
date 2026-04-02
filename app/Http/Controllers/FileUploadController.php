@@ -235,6 +235,7 @@ class FileUploadController extends Controller
             // Save image record in sp_images table
             DB::table('sp_images')->insert([
                 'ist_inf_id' => $request->institution_id,
+                'ist_id' => $request->institution_id,
                 'image_type' => 'INS',
                 'image' => $data['img9'],
                 'updated_at' => now(),
@@ -276,6 +277,7 @@ class FileUploadController extends Controller
                 // Save image record in sp_images table
                 DB::table('sp_images')->insert([
                     'ist_inf_id' => $request->infrastructure_id,
+                    'ist_id' => $request->institution_id,
                     'image_type' => 'INF',
                     'image' => $data['image'],
                     'updated_at' => now(),
