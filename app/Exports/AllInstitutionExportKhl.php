@@ -72,6 +72,7 @@ class AllInstitutionExportKhl implements
                 'sp_school.under_const_counts',
                 'sp_school.onboard_date as school_onboard',
                 'sp_school.is_active',
+                'sp_school.is_1174',
                 'sp_infrastructure.water_id',
                 'sp_infrastructure.tech_type',
                 'sp_infrastructure.install_year',
@@ -127,6 +128,7 @@ class AllInstitutionExportKhl implements
             'Headmaster Phone',
             'Latitude',
             'Longitude',
+            'Within 1174',
             'Actively Managed?'
         ];
     }
@@ -172,6 +174,7 @@ class AllInstitutionExportKhl implements
             $row->head_phone,
             $row->lat,
             $row->lon,
+            $row->is_1174 == 1 ? 'Yes' : 'No',
             $row->is_active == 1 ? 'Yes' : 'No'
         ];
     }
