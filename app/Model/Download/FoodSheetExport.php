@@ -41,7 +41,7 @@ class FoodSheetExport implements FromCollection, WithHeadings, WithTitle, WithEv
             })
             ->whereHas('SpInfrastructure', function ($query2) {
                 $query2->whereNotNull('sp_infrastructure.ren_om_id')
-                ->where('sp_infrastructure.is_active', '3')
+                ->where('sp_infrastructure.is_active', '1')
                 ->orderBy('sp_infrastructure.id');
             })
 
