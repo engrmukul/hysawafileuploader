@@ -94,16 +94,18 @@ class AllInstitutionExportKhl implements
                             CONCAT(
                                 COALESCE(pi.water_id, ''),
                                 ' (Deboard Date: ',
-                                COALESCE(pi.deboard_date, ''),
+                                pi.deboard_date,
                                 ')'
                             )
                             ORDER BY pi.id DESC SEPARATOR ', '
                         )
                         FROM sp_infrastructure pi
                         WHERE pi.school_id = sp_school.id
-                        AND pi.is_active = 0
+                          AND pi.deboard_date IS NOT NULL
+                          AND pi.deboard_date != ''
+                          AND pi.is_active = 0
                     ) as previous_all_infrastructure
-                ")
+                    ")
             )
             ->get();
     }
@@ -136,7 +138,7 @@ class AllInstitutionExportKhl implements
             'Under Construction',
             'Institution Onboard',
             'Currently Active Infrastructure',
-            'Previous All Infrastructure',
+            'Previously Active Infrastructure',
             'Respondent Name',
             'Respondent Position',
             'Respondent Phone',
