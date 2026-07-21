@@ -67,6 +67,7 @@ class AllInstitutionExportKhl implements
                 'sp_school.under_const_counts',
                 'sp_school.onboard_date as school_onboard',
                 'sp_school.is_active',
+                'sp_school.is_payable',
                 'sp_school.is_1174',
                 'sp_school.contact_name',
                 'sp_school.contact_position',
@@ -79,7 +80,10 @@ class AllInstitutionExportKhl implements
                 DB::raw("
                     (
                         SELECT GROUP_CONCAT(
-                            COALESCE(ai.water_id, '')
+                                COALESCE(ai.water_id, ''),
+                                ' (Onboard: ',
+                                ai.onboard_date,
+                                ')'
                             ORDER BY ai.id DESC SEPARATOR ', '
                         )
                         FROM sp_infrastructure ai
@@ -93,7 +97,7 @@ class AllInstitutionExportKhl implements
                         SELECT GROUP_CONCAT(
                             CONCAT(
                                 COALESCE(pi.water_id, ''),
-                                ' (Deboard Date: ',
+                                ' (Deboard: ',
                                 pi.deboard_date,
                                 ')'
                             )
@@ -122,7 +126,7 @@ class AllInstitutionExportKhl implements
             'Institution Name',
             'Establish Year',
             'Owner Type',
-            'School Type',
+            'Institution Type',
             'Boys',
             'Girls',
             'Total Students',
@@ -138,6 +142,7 @@ class AllInstitutionExportKhl implements
             'Under Construction',
             'Institution Onboard',
             'Currently Active Infrastructure',
+            'Uptime Status',
             'Previously Active Infrastructure',
             'Respondent Name',
             'Respondent Position',
@@ -181,6 +186,11 @@ class AllInstitutionExportKhl implements
             $row->under_const_counts,
             $row->school_onboard,
             $row->currently_active_infrastructure,
+            $row->is_payable == 1
+                ? 'Payable'
+                : ($row->is_payable == 2
+                ? 'Non Payable'
+                : 'Non Qualified'),
             $row->previous_all_infrastructure,
             $row->contact_name,
             $row->contact_position,
@@ -251,6 +261,44 @@ class AllInstitutionExportKhl implements
                     }
                 }
 
+                // Uptime Status column (Z)
+                $uptimeStatusCol = Coordinate::stringFromColumnIndex(26); // Z
+
+                for ($i = 4; $i <= $lastRow; $i++) {
+
+                    $value = trim($sheet->getCell("{$uptimeStatusCol}{$i}")->getValue());
+
+                    switch ($value) {
+
+                        case 'Payable':
+                            $sheet->getStyle("{$uptimeStatusCol}{$i}")->applyFromArray([
+                                'font' => [
+                                    'bold'  => true,
+                                    'color' => ['argb' => '006400'] // Dark Green
+                                ]
+                            ]);
+                            break;
+
+                        case 'Non Qualified':
+                            $sheet->getStyle("{$uptimeStatusCol}{$i}")->applyFromArray([
+                                'font' => [
+                                    'bold'  => true,
+                                    'color' => ['argb' => '8B0000'] // Dark Red
+                                ]
+                            ]);
+                            break;
+
+                        case 'Non Payable':
+                            $sheet->getStyle("{$uptimeStatusCol}{$i}")->applyFromArray([
+                                'font' => [
+                                    'bold'  => true,
+                                    'color' => ['argb' => 'FF8C00'] // Dark Orange
+                                ]
+                            ]);
+                            break;
+                    }
+                }
+
                 $sheet->freezePane('A4');
 
                 $sheet->getStyle("A3:{$lastColumn}{$lastRow}")
@@ -277,7 +325,7 @@ class AllInstitutionExportKhl implements
                 $sheet->getColumnDimension('F')->setWidth(14);
                 $sheet->getColumnDimension('G')->setWidth(20);
                 $sheet->getColumnDimension('Y')->setWidth(40);
-                $sheet->getColumnDimension('Z')->setWidth(60);
+                $sheet->getColumnDimension('AA')->setWidth(40);
             }
         ];
     }
