@@ -44,6 +44,9 @@ Route::get('/get-inspaction-dates/{infrastructure_id}', [FileUploadController::c
 //update-current-image
 Route::post('/update-current-image', [FileUploadController::class, 'updateCurrentImage'])->name('update-current-image');
 
+//update-image-status (active/inactive)
+Route::post('/update-image-status', [FileUploadController::class, 'updateImageStatus'])->name('update-image-status');
+
 
 //institution-edit
 Route::get('/institution-edit/', [InstitutionController::class, 'edit'])->name('institution.edit');

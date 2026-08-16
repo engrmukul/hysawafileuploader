@@ -202,14 +202,29 @@
                                                 }
                                             @endphp
 
+                                            @php
+                                                $isCurrentImage = isset($img->is_current_image) && $img->is_current_image == 1;
+                                                $isActive = !isset($img->status) || $img->status !== 'inactive';
+                                            @endphp
                                             <div class="preview-img-wrapper">
                                                 <img src="{{ $imgPath }}" class="preview-img"
                                                     style="width:100px;height:100px;object-fit:cover;">
                                                 <div class="current-image-radio">
                                                     <input type="radio" name="current_image" class="current-image-selector"
                                                         data-image-id="{{ $img->id }}"
-                                                        {{ isset($img->is_current_image) && $img->is_current_image == 1 ? 'checked' : '' }}>
+                                                        {{ $isCurrentImage ? 'checked' : '' }}
+                                                        {{ !$isActive ? 'disabled' : '' }}>
                                                     <label>Current Image</label>
+                                                </div>
+                                                <div class="image-status-toggle">
+                                                    <label class="switch">
+                                                        <input type="checkbox" class="image-status-selector"
+                                                            data-image-id="{{ $img->id }}"
+                                                            {{ $isActive ? 'checked' : '' }}
+                                                            {{ $isCurrentImage ? 'disabled' : '' }}>
+                                                        <span class="slider"></span>
+                                                    </label>
+                                                    <span class="image-status-label">{{ $isActive ? 'Active' : 'Inactive' }}</span>
                                                 </div>
                                             </div>
                                         @endforeach
@@ -265,6 +280,68 @@
                         font-size: 12px;
                         margin-left: 3px;
                         cursor: pointer;
+                    }
+
+                    .image-status-toggle {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-top: 4px;
+                    }
+
+                    .image-status-toggle .switch {
+                        position: relative;
+                        display: inline-block;
+                        width: 34px;
+                        height: 18px;
+                    }
+
+                    .image-status-toggle .switch input {
+                        opacity: 0;
+                        width: 0;
+                        height: 0;
+                    }
+
+                    .image-status-toggle .slider {
+                        position: absolute;
+                        cursor: pointer;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background-color: #ccc;
+                        transition: .2s;
+                        border-radius: 18px;
+                    }
+
+                    .image-status-toggle .slider:before {
+                        position: absolute;
+                        content: "";
+                        height: 14px;
+                        width: 14px;
+                        left: 2px;
+                        bottom: 2px;
+                        background-color: #fff;
+                        transition: .2s;
+                        border-radius: 50%;
+                    }
+
+                    .image-status-toggle input:checked + .slider {
+                        background-color: #28a745;
+                    }
+
+                    .image-status-toggle input:checked + .slider:before {
+                        transform: translateX(16px);
+                    }
+
+                    .image-status-toggle input:disabled + .slider {
+                        opacity: 0.6;
+                        cursor: not-allowed;
+                    }
+
+                    .image-status-label {
+                        font-size: 12px;
+                        margin-left: 5px;
                     }
                 </style>
             </div>
@@ -612,14 +689,34 @@
                                 $prevImg.empty();
                                 $.each(data.all_images, function (i, image) {
                                      var imgUrl = ("{{ Storage::disk('mis_uploads')->url('/sp_assets/SafePani_Waterpoints_Photo/') }}" + image.image).replace('upload/', '');
-                                     var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
-                                     $prevImg.append(imgTag);
+                                     var isCurrentImage = image.is_current_image == 1;
+                                     var isActive = image.status !== 'inactive';
+                                     var wrapper = $('<div class="preview-img-wrapper"></div>');
+                                     wrapper.append('<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">');
+                                     wrapper.append(
+                                         '<div class="current-image-radio">' +
+                                             '<input type="radio" name="current_image" class="current-image-selector" data-image-id="' + image.id + '"' +
+                                                 (isCurrentImage ? ' checked' : '') +
+                                                 (!isActive ? ' disabled' : '') + '>' +
+                                             '<label>Current Image</label>' +
+                                         '</div>'
+                                     );
+                                     wrapper.append(
+                                         '<div class="image-status-toggle">' +
+                                             '<label class="switch">' +
+                                                 '<input type="checkbox" class="image-status-selector" data-image-id="' + image.id + '"' +
+                                                     (isActive ? ' checked' : '') +
+                                                     (isCurrentImage ? ' disabled' : '') + '>' +
+                                                 '<span class="slider"></span>' +
+                                             '</label>' +
+                                             '<span class="image-status-label">' + (isActive ? 'Active' : 'Inactive') + '</span>' +
+                                         '</div>'
+                                     );
+                                     $prevImg.append(wrapper);
                                  });
+                             } else {
+                                $prevImg.html('<span class="text-muted">No previous image found.</span>');
                              }
-
-                           // var imgUrl = "{{ Storage::disk('')->url('sp_assets/SafePani_Waterpoints_Photo') }}/" + selectedInfrastructureImage;
-                            //var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
-                            $prevImg.html(imgTag);
 
                         },
                         error: function () {
@@ -710,12 +807,58 @@
                         if (response.success) {
                             // Show success message
                             showNotification('Current image status updated successfully.', 'success');
+                            // Re-enable the toggle on the previously-current image(s), then lock the new current image
+                            $radio.closest('#previous-image-preview').find('.image-status-selector').prop('disabled', false);
+                            $radio.closest('.preview-img-wrapper').find('.image-status-selector').prop('disabled', true);
                         } else {
-                            showNotification('Failed to update current image status.', 'danger');
+                            showNotification(response.message || 'Failed to update current image status.', 'danger');
+                            $radio.prop('checked', false);
                         }
                     },
                     error: function (xhr, status, error) {
                         showNotification('Error updating current image.', 'danger');
+                        $radio.prop('checked', false);
+                    }
+                });
+            });
+
+            // Handle active/inactive image status toggle
+            $(document).on('change', '.image-status-selector', function () {
+                var $toggle = $(this);
+                var imageId = $toggle.data('image-id');
+                var newStatus = $toggle.is(':checked') ? 'active' : 'inactive';
+                var $wrapper = $toggle.closest('.preview-img-wrapper');
+                var $label = $wrapper.find('.image-status-label');
+                var $currentRadio = $wrapper.find('.current-image-selector');
+
+                if (newStatus === 'inactive' && $currentRadio.is(':checked')) {
+                    showNotification('The current image cannot be made inactive.', 'danger');
+                    $toggle.prop('checked', true);
+                    return;
+                }
+
+                $.ajax({
+                    url: '/update-image-status',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        image_id: imageId,
+                        status: newStatus
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            showNotification('Image status updated successfully.', 'success');
+                            $label.text(newStatus === 'active' ? 'Active' : 'Inactive');
+                            $currentRadio.prop('disabled', newStatus === 'inactive');
+                        } else {
+                            showNotification(response.message || 'Failed to update image status.', 'danger');
+                            $toggle.prop('checked', !$toggle.is(':checked'));
+                        }
+                    },
+                    error: function (xhr) {
+                        var message = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error updating image status.';
+                        showNotification(message, 'danger');
+                        $toggle.prop('checked', !$toggle.is(':checked'));
                     }
                 });
             });

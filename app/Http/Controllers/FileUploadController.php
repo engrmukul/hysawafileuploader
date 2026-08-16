@@ -55,7 +55,7 @@ class FileUploadController extends Controller
                 ->first();
 
             $institutionDetails = DB::table('sp_school')
-                ->where('id', $infrastructure->school_id)
+                ->where('id', $infrastructure->school_id ?? null)
                 ->first();
 
         }
@@ -247,6 +247,10 @@ class FileUploadController extends Controller
         if ($request->upload_type == 'infrastructure') {
             $infrastructure = DB::table('sp_infrastructure')->where('id', $request->infrastructure_id)->first();
 
+            if (!$infrastructure) {
+                return redirect()->back()->withErrors(['infrastructure_id' => 'Selected infrastructure was not found.'])->withInput();
+            }
+
             // Manually get school.distid
             $school = DB::table('sp_school')->where('id', $infrastructure->school_id)->first();
             $distId = $school->distid ?? null;
@@ -292,6 +296,10 @@ class FileUploadController extends Controller
 
         if ($request->upload_type == 'inspection') {
             $sanitaryInspection = DB::table('sp_san_inspection_v2')->where(['infrastructure_id' => $request->infrastructure_id, 'inspection_date' => $request->inspection_date])->first();
+
+            if (!$sanitaryInspection) {
+                return redirect()->back()->withErrors(['inspection_date' => 'Selected inspection record was not found.'])->withInput();
+            }
 
             // Manually get school.distid
             $school = DB::table('sp_school')->where('id', $sanitaryInspection->school_id)->first();
@@ -381,7 +389,7 @@ class FileUploadController extends Controller
         $allImages =  DB::table('sp_images')
             ->where('ist_inf_id', '=',$infrastructure_id)
             ->where('image_type','=', 'INF')
-            ->get(['image']);
+            ->get(['id', 'image', 'is_current_image', 'status']);
 
         $data = [
             'inspection_dates' => $inspectionDates,
@@ -426,6 +434,10 @@ class FileUploadController extends Controller
             return response()->json(['success' => false, 'message' => 'Image not found'], 404);
         }
 
+        if (isset($image->status) && $image->status === 'inactive') {
+            return response()->json(['success' => false, 'message' => 'An inactive image cannot be set as the current image'], 422);
+        }
+
         // Reset all is_current_image to 0 for the same ist_inf_id and image_type
         DB::table('sp_images')
             ->where('ist_inf_id', $image->ist_inf_id)
@@ -438,6 +450,36 @@ class FileUploadController extends Controller
             ->update(['is_current_image' => 1]);
 
         return response()->json(['success' => true, 'message' => 'Current image updated successfully']);
+    }
+
+    /**
+     * Toggle the active/inactive status of an image in sp_images table.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateImageStatus(Request $request)
+    {
+        $imageId = $request->input('image_id');
+        $status = $request->input('status');
+
+        if (!$imageId || !in_array($status, ['active', 'inactive'])) {
+            return response()->json(['success' => false, 'message' => 'Image ID and a valid status are required'], 400);
+        }
+
+        $image = DB::table('sp_images')->where('id', $imageId)->first();
+
+        if (!$image) {
+            return response()->json(['success' => false, 'message' => 'Image not found'], 404);
+        }
+
+        if ($status === 'inactive' && isset($image->is_current_image) && $image->is_current_image == 1) {
+            return response()->json(['success' => false, 'message' => 'The current image cannot be made inactive'], 422);
+        }
+
+        DB::table('sp_images')->where('id', $imageId)->update(['status' => $status]);
+
+        return response()->json(['success' => true, 'message' => 'Image status updated successfully', 'status' => $status]);
     }
 
 }

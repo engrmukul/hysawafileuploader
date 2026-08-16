@@ -1,0 +1,2 @@
+1. Upload type change a information will be displayed.
+2. at a time institution and infrustructure image upload, current image change and active inactive status change
