@@ -34,6 +34,8 @@ Route::get('/get-unions/{upazila_id}', [FileUploadController::class, 'getUnions'
 Route::get('/get-institutions/{union_id}/{institution_type}/{user_id}', [FileUploadController::class, 'getInstitutions'])->name('get-institutions');
 //for getting infrastructures by institution id
 Route::get('/get-infrastructures/{institution_id}', [FileUploadController::class, 'getInfrastructures'])->name('get-infrastructures');
+//for getting previous institute (INS) images by institution id
+Route::get('/get-institution-images/{institution_id}', [FileUploadController::class, 'getInstitutionImages'])->name('get-institution-images');
 
 //get-inspaction-images
 Route::get('/get-inspaction-images/{infrastructure_id}/{inspaction_date}', [FileUploadController::class, 'getInspactionImages'])->name('get-inspaction-images');

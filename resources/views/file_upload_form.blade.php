@@ -87,7 +87,11 @@
                         <select name="institution_id" id="institution_name" class="form-control" required>
                             <option value="">Select Institution</option>
                             @foreach($institutions as $institution)
-                                <option value="{{ $institution->id }}" {{ (old('institution_id', $institutionDetails->id ?? '') == $institution->id) ? 'selected' : '' }}>
+                                <option value="{{ $institution->id }}"
+                                    data-sch-name-en="{{ $institution->sch_name_en }}"
+                                    data-lat="{{ $institution->lat }}"
+                                    data-lon="{{ $institution->lon }}"
+                                    {{ (old('institution_id', $institutionDetails->id ?? '') == $institution->id) ? 'selected' : '' }}>
                                     {{ $institution->sch_name_en }}
                                 </option>
                             @endforeach
@@ -141,9 +145,11 @@
                     <div class="form-group">
                         <label for="files">Files</label>
                         <input type="file" name="files[]" id="files" class="form-control" accept="image/*" multiple onchange="validateImageLimit(this)">
+                        <div id="new-image-preview-label" class="mt-2" style="display:none;font-size:12px;font-weight:bold;">Newly Selected Images</div>
                         <div id="file-preview" class="mt-2 row"></div>
 
                         @if(isset($institutionDetails) && !empty($institutionDetails))
+                            <div id="previous-image-preview-label" class="mt-2" style="font-size:12px;font-weight:bold;">Previous Images</div>
                             <div id="previous-image-preview" class="mt-2 row">
                                 <div class="preview-img-wrapper">
                                     @php
@@ -365,15 +371,12 @@
 
             fileInput.addEventListener('change', function (e) {
                 filesArray = Array.from(fileInput.files);
-
-                //hide previous-image-preview div
-                $('#previous-image-preview').hide();
-
                 renderPreviews();
             });
 
             function renderPreviews() {
                 previewDiv.innerHTML = '';
+                $('#new-image-preview-label').toggle(filesArray.length > 0);
                 filesArray.forEach(function (file, idx) {
                     if (file.type.startsWith('image/')) {
                         let reader = new FileReader();
@@ -486,6 +489,31 @@
                     $('#institution_latitude_group').show();
                     $('#institution_longitude_group').show();
                     $('#inspaction_date_section').hide();
+
+                    // Re-populate institution name/lat/lon for the already-selected institution
+                    var currentInstitutionId = $('#institution_name').val();
+                    if (currentInstitutionId) {
+                        var $selectedOption = $('#institution_name option:selected');
+                        var selectedInstitution = allInstitutions.find(function (institution) {
+                            return institution.id == currentInstitutionId;
+                        });
+
+                        if (selectedInstitution) {
+                            $('#institution_name_1').val(selectedInstitution.sch_name_en);
+                            $('#institution_latitude').val(selectedInstitution.lat);
+                            $('#institution_longitude').val(selectedInstitution.lon);
+                            renderInstitutionImages(currentInstitutionId, $('#previous-image-preview'));
+                        } else if ($selectedOption.length && $selectedOption.data('sch-name-en') !== undefined) {
+                            // Fall back to the data attributes rendered on the option itself,
+                            // which are always present regardless of AJAX/array timing.
+                            $('#institution_name_1').val($selectedOption.data('sch-name-en'));
+                            $('#institution_latitude').val($selectedOption.data('lat'));
+                            $('#institution_longitude').val($selectedOption.data('lon'));
+                            renderInstitutionImages(currentInstitutionId, $('#previous-image-preview'));
+                        } else {
+                            $('#institution_name').trigger('change');
+                        }
+                    }
                 }
             });
 
@@ -572,7 +600,59 @@
             });
 
 
-            let allInstitutions = [];
+            let allInstitutions = @json($institutions ?? []);
+
+            // Fetch and render the previous institute (INS) images for the given institution,
+            // with the same current-image radio / active-inactive toggle markup as the initial page load.
+            function renderInstitutionImages(institutionId, $prevImg) {
+                if (!institutionId) {
+                    $prevImg.html('<span class="text-muted">No previous image found.</span>');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/get-institution-images/' + institutionId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (images) {
+                        if (!images.length) {
+                            $prevImg.html('<span class="text-muted">No previous image found.</span>');
+                            return;
+                        }
+
+                        $prevImg.empty();
+                        $.each(images, function (i, image) {
+                            var isCurrentImage = image.is_current_image == 1;
+                            var isActive = image.status !== 'inactive';
+                            var wrapper = $('<div class="preview-img-wrapper"></div>');
+                            wrapper.append('<img src="' + image.url + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">');
+                            wrapper.append(
+                                '<div class="current-image-radio">' +
+                                    '<input type="radio" name="current_image" class="current-image-selector" data-image-id="' + image.id + '"' +
+                                        (isCurrentImage ? ' checked' : '') +
+                                        (!isActive ? ' disabled' : '') + '>' +
+                                    '<label>Current Image</label>' +
+                                '</div>'
+                            );
+                            wrapper.append(
+                                '<div class="image-status-toggle">' +
+                                    '<label class="switch">' +
+                                        '<input type="checkbox" class="image-status-selector" data-image-id="' + image.id + '"' +
+                                            (isActive ? ' checked' : '') +
+                                            (isCurrentImage ? ' disabled' : '') + '>' +
+                                        '<span class="slider"></span>' +
+                                    '</label>' +
+                                    '<span class="image-status-label">' + (isActive ? 'Active' : 'Inactive') + '</span>' +
+                                '</div>'
+                            );
+                            $prevImg.append(wrapper);
+                        });
+                    },
+                    error: function () {
+                        $prevImg.html('<span class="text-danger">Error loading previous image.</span>');
+                    }
+                });
+            }
             // onclick #institution_type get institutions
             $('#institution_type').on('change', function () {
                 var unionId = $('#union').val();
@@ -591,7 +671,14 @@
                             $institution.empty();
                             $institution.append('<option value="">Select Institution</option>');
                             $.each(data, function (i, institution) {
-                                $institution.append('<option value="' + institution.id + '">' + institution.sch_name_en + '</option>');
+                                $institution.append(
+                                    '<option value="' + institution.id + '"' +
+                                        ' data-sch-name-en="' + (institution.sch_name_en || '') + '"' +
+                                        ' data-lat="' + (institution.lat || '') + '"' +
+                                        ' data-lon="' + (institution.lon || '') + '">' +
+                                        institution.sch_name_en +
+                                    '</option>'
+                                );
                             });
                         },
                         error: function () {
@@ -634,18 +721,14 @@
 
                             console.log(selectedInstitution);
 
-                            $('#institution_name_1').val(selectedInstitution.sch_name_en);
-                            $('#institution_latitude').val(selectedInstitution.lat);
-                            $('#institution_longitude').val(selectedInstitution.lon);
-
-                            // Show previous image if exists
-                            if (selectedInstitution && selectedInstitution.img9) {
-                                var imgUrl = "{{ Storage::disk('mis_uploads')->url('sp_satkhira_inst') }}/" + selectedInstitution.img9;
-                                var imgTag = '<img src="' + imgUrl + '" class="preview-img" style="width:100px;height:100px;object-fit:cover;">';
-                                $prevImg.html(imgTag);
-                            } else {
-                                $prevImg.html('<span class="text-muted">No previous image found.</span>');
+                            if (selectedInstitution) {
+                                $('#institution_name_1').val(selectedInstitution.sch_name_en);
+                                $('#institution_latitude').val(selectedInstitution.lat);
+                                $('#institution_longitude').val(selectedInstitution.lon);
                             }
+
+                            // Show previous institute images (with current/active-inactive controls)
+                            renderInstitutionImages(institutionId, $prevImg);
                         },
                         error: function () {
                             $infrastructure.empty();
@@ -684,11 +767,11 @@
 
 
                             //data.all_images array render all images in #previous-image-preview
-                            const uploadType = "{{ $uploadType }}";
+                            var uploadType = $('#upload_type').val();
                             if (data.all_images.length && uploadType == 'infrastructure') {
                                 $prevImg.empty();
                                 $.each(data.all_images, function (i, image) {
-                                     var imgUrl = ("{{ Storage::disk('mis_uploads')->url('/sp_assets/SafePani_Waterpoints_Photo/') }}" + image.image).replace('upload/', '');
+                                     var imgUrl = image.url;
                                      var isCurrentImage = image.is_current_image == 1;
                                      var isActive = image.status !== 'inactive';
                                      var wrapper = $('<div class="preview-img-wrapper"></div>');
@@ -889,9 +972,9 @@
 
 
 
-        var uploadType = "{{ $uploadType ?? '' }}";
         function validateImageLimit(input) {
             let maxLimit = 3;
+            let uploadType = document.getElementById('upload_type').value;
 
             if (uploadType === 'institute' || uploadType === 'infrastructure') {
                 maxLimit = 1;

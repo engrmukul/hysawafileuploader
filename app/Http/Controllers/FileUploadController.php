@@ -378,6 +378,32 @@ class FileUploadController extends Controller
         return response()->json($infrastructures);
     }
 
+    //get previous institute (INS) images for the previous-image-preview gallery
+    public function getInstitutionImages($institution_id)
+    {
+        $school = DB::table('sp_school')->where('id', $institution_id)->first();
+        $dist = $school->distid ?? null;
+
+        $images = DB::table('sp_images')
+            ->where('ist_inf_id', $institution_id)
+            ->where('image_type', 'INS')
+            ->get(['id', 'image', 'is_current_image', 'status']);
+
+        $images = $images->map(function ($img) use ($dist) {
+            $filename = ltrim($img->image, '/');
+
+            if ($dist == 6) {
+                $img->url = "http://www.hysawa.com/mis/public/sp_assets/SafePani_School_Baseline_Photo/{$filename}";
+            } else {
+                $img->url = Storage::disk('mis_uploads')->url("sp_satkhira_inst/{$filename}");
+            }
+
+            return $img;
+        });
+
+        return response()->json($images);
+    }
+
 
     public function getInspectionDate($infrastructure_id)
     {
@@ -386,10 +412,26 @@ class FileUploadController extends Controller
             ->groupBy('inspection_date')
             ->get(['inspection_date']);
 
+        $infrastructure = DB::table('sp_infrastructure')->where('id', $infrastructure_id)->first();
+        $school = $infrastructure ? DB::table('sp_school')->where('id', $infrastructure->school_id)->first() : null;
+        $dist = $school->distid ?? null;
+
         $allImages =  DB::table('sp_images')
             ->where('ist_inf_id', '=',$infrastructure_id)
             ->where('image_type','=', 'INF')
             ->get(['id', 'image', 'is_current_image', 'status']);
+
+        $allImages = $allImages->map(function ($img) use ($dist) {
+            $filename = ltrim($img->image, '/');
+
+            if ($dist == 6) {
+                $img->url = "http://www.hysawa.com/mis/public/sp_assets/SafePani_Waterpoints_Photo/{$filename}";
+            } else {
+                $img->url = Storage::disk('mis_uploads')->url("sp_satkhira_infras/{$filename}");
+            }
+
+            return $img;
+        });
 
         $data = [
             'inspection_dates' => $inspectionDates,
