@@ -10,11 +10,11 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class AllInstitutionExportSat implements
     FromCollection,
@@ -25,6 +25,7 @@ class AllInstitutionExportSat implements
     WithCustomStartCell,
     WithTitle
 {
+
     private $sl = 0;
 
     public function startCell(): string
@@ -38,11 +39,14 @@ class AllInstitutionExportSat implements
             ->leftJoin('fdistrict', 'sp_school.distid', '=', 'fdistrict.id')
             ->leftJoin('fupazila', 'sp_school.upid', '=', 'fupazila.id')
             ->leftJoin('funion', 'sp_school.unid', '=', 'funion.id')
+            ->leftJoin('sp_infrastructure', function ($join) {
+                $join->on('sp_school.id', '=', 'sp_infrastructure.school_id')
+                    ->where('sp_infrastructure.is_active', 3);
+            })
             ->where('sp_school.distid', 7)
             ->orderBy('sp_school.distid', 'ASC')
             ->orderBy('sp_school.institution_id', 'ASC')
             ->select(
-                'sp_school.id',
                 'sp_school.institution_id',
                 'fdistrict.distname',
                 'fupazila.upname',
@@ -67,43 +71,18 @@ class AllInstitutionExportSat implements
                 'sp_school.under_const_counts',
                 'sp_school.onboard_date as school_onboard',
                 'sp_school.is_active',
-                'sp_school.is_payable',
-                'sp_school.is_1102',
+                'sp_infrastructure.water_id',
+                'sp_infrastructure.tech_type',
+                'sp_infrastructure.install_year',
+                'sp_infrastructure.install_by',
+                'sp_infrastructure.onboard_date as infra_onboard',
                 'sp_school.contact_name',
                 'sp_school.contact_position',
                 'sp_school.contact_phone',
                 'sp_school.headmaster_chcp',
                 'sp_school.head_phone',
                 'sp_school.lat',
-                'sp_school.lon',
-
-                DB::raw("
-                    (
-                        SELECT ai.water_id
-                        FROM sp_infrastructure ai
-                        WHERE ai.school_id = sp_school.id
-                          AND ai.is_active = 1
-                    ) as currently_active_infrastructure
-                "),
-
-                DB::raw("
-                    (
-                        SELECT GROUP_CONCAT(
-                            CONCAT(
-                                COALESCE(pi.water_id, ''),
-                                ' (Deboard: ',
-                                pi.deboard_date,
-                                ')'
-                            )
-                            ORDER BY pi.id DESC SEPARATOR ', '
-                        )
-                        FROM sp_infrastructure pi
-                        WHERE pi.school_id = sp_school.id
-                          AND pi.deboard_date IS NOT NULL
-                          AND pi.deboard_date != ''
-                          AND pi.is_active = 0
-                    ) as previous_all_infrastructure
-                    ")
+                'sp_school.lon'
             )
             ->get();
     }
@@ -120,7 +99,7 @@ class AllInstitutionExportSat implements
             'Institution Name',
             'Establish Year',
             'Owner Type',
-            'Institution Type',
+            'School Type',
             'Boys',
             'Girls',
             'Total Students',
@@ -135,9 +114,11 @@ class AllInstitutionExportSat implements
             'Non Functional',
             'Under Construction',
             'Institution Onboard',
-            'Currently Active Infrastructure',
-            'Uptime Status',
-            'Previously Active Infrastructure',
+            'Water ID',
+            'Technology',
+            'Install Year',
+            'Installed By',
+            'Waterpoint Onboard',
             'Respondent Name',
             'Respondent Position',
             'Respondent Phone',
@@ -145,7 +126,6 @@ class AllInstitutionExportSat implements
             'Headmaster Phone',
             'Latitude',
             'Longitude',
-            'Within 1102',
             'Actively Managed?'
         ];
     }
@@ -179,13 +159,11 @@ class AllInstitutionExportSat implements
             $row->non_func_counts,
             $row->under_const_counts,
             $row->school_onboard,
-            $row->currently_active_infrastructure,
-            $row->is_payable == 1
-                ? 'Payable'
-                : ($row->is_payable == 2
-                ? 'Non Payable'
-                : 'Non Qualified'),
-            $row->previous_all_infrastructure,
+            $row->water_id,
+            $row->tech_type,
+            $row->install_year,
+            $row->install_by,
+            $row->infra_onboard,
             $row->contact_name,
             $row->contact_position,
             $row->contact_phone,
@@ -193,7 +171,6 @@ class AllInstitutionExportSat implements
             $row->head_phone,
             $row->lat,
             $row->lon,
-            $row->is_1102 == 1 ? 'Yes' : 'No',
             $row->is_active == 1 ? 'Yes' : 'No'
         ];
     }
@@ -207,6 +184,7 @@ class AllInstitutionExportSat implements
                 $lastColumn = $sheet->getHighestColumn();
                 $lastRow = $sheet->getHighestRow();
 
+                /* Title */
                 $sheet->mergeCells("A1:{$lastColumn}1");
                 $sheet->setCellValue('A1', 'SafePani All Institutions List');
 
@@ -218,6 +196,7 @@ class AllInstitutionExportSat implements
                     ]
                 ]);
 
+                /* Header Styling */
                 $sheet->getStyle("A3:{$lastColumn}3")->applyFromArray([
                     'font' => ['bold' => true],
                     'alignment' => [
@@ -234,13 +213,16 @@ class AllInstitutionExportSat implements
                     ]
                 ]);
 
+                /* Auto Filter */
                 $sheet->setAutoFilter("A3:{$lastColumn}3");
 
+                /* Borders */
                 $sheet->getStyle("A3:{$lastColumn}{$lastRow}")
                     ->getBorders()
                     ->getAllBorders()
                     ->setBorderStyle(Border::BORDER_THIN);
 
+                /* Conditional Formatting: Actively Managed */
                 for ($i = 4; $i <= $lastRow; $i++) {
                     $cell = $sheet->getCell("{$lastColumn}{$i}")->getValue();
 
@@ -255,71 +237,21 @@ class AllInstitutionExportSat implements
                     }
                 }
 
-                // Uptime Status column (Z)
-                $uptimeStatusCol = Coordinate::stringFromColumnIndex(26); // Z
-
-                for ($i = 4; $i <= $lastRow; $i++) {
-
-                    $value = trim($sheet->getCell("{$uptimeStatusCol}{$i}")->getValue());
-
-                    switch ($value) {
-
-                        case 'Payable':
-                            $sheet->getStyle("{$uptimeStatusCol}{$i}")->applyFromArray([
-                                'font' => [
-                                    'bold'  => true,
-                                    'color' => ['argb' => '006400'] // Dark Green
-                                ]
-                            ]);
-                            break;
-
-                        case 'Non Qualified':
-                            $sheet->getStyle("{$uptimeStatusCol}{$i}")->applyFromArray([
-                                'font' => [
-                                    'bold'  => true,
-                                    'color' => ['argb' => '8B0000'] // Dark Red
-                                ]
-                            ]);
-                            break;
-
-                        case 'Non Payable':
-                            $sheet->getStyle("{$uptimeStatusCol}{$i}")->applyFromArray([
-                                'font' => [
-                                    'bold'  => true,
-                                    'color' => ['argb' => 'FF8C00'] // Dark Orange
-                                ]
-                            ]);
-                            break;
-                    }
-                }
-
+                /* Freeze header row */
                 $sheet->freezePane('A4');
 
+                /* Vertical alignment */
                 $sheet->getStyle("A3:{$lastColumn}{$lastRow}")
                     ->getAlignment()
                     ->setVertical(Alignment::VERTICAL_CENTER);
 
-
-                $lastColumnIndex = Coordinate::columnIndexFromString($lastColumn);
-
-                // "Within 1102" = second last column
-                $within1102Col = Coordinate::stringFromColumnIndex($lastColumnIndex - 1);
-
-                $sheet->getStyle("{$within1102Col}4:{$within1102Col}{$lastRow}")
-                    ->getAlignment()
-                    ->setHorizontal(Alignment::HORIZONTAL_CENTER)
-                    ->setVertical(Alignment::VERTICAL_CENTER);
-
-
+                /* Center align last column (Actively Managed?) */
                 $sheet->getStyle("{$lastColumn}4:{$lastColumn}{$lastRow}")
                     ->getAlignment()
-                    ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
-                    ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+                    ->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                $sheet->getColumnDimension('F')->setWidth(14);
-                $sheet->getColumnDimension('G')->setWidth(20);
-                $sheet->getColumnDimension('Y')->setWidth(40);
-                $sheet->getColumnDimension('AA')->setWidth(40);
+                $sheet->getColumnDimension('F')->setWidth(14); // Village
+                $sheet->getColumnDimension('G')->setWidth(20); // Institution Name
             }
         ];
     }
